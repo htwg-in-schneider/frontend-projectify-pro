@@ -1,4 +1,6 @@
-<script setup></script>
+<script setup>
+import { products } from './data.js';
+</script>
 
 <template>
   <header>
@@ -97,6 +99,21 @@
         <img src="./assets/icons/roterPanda.png" alt="Klick mich">
       </a>
     </div>
+
+    <section class="container mt-5 mb-5">
+      <h1 class="fw-bold mb-4">Unsere Dienstleistungen</h1>
+      <div class="list-group shadow-sm">
+        <a href="#" class="list-group-item list-group-item-action" v-for="product in products" :key="product.id">
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ product.title }}</h5>
+            <small class="text-muted">{{ product.price }} €</small>
+          </div>
+          <p class="mb-1">{{ product.description }}</p>
+          <small class="text-muted">Kategorie: {{ product.category }}</small>
+        </a>
+      </div>
+    </section>
+
   </main>
 
   <footer class="bg-white text-center py-4 mt-5 border-top">
