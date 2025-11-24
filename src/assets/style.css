@@ -1,0 +1,42 @@
+body {
+    font-family: 'Montserrat', sans-serif;
+}
+
+
+main {
+    background-image: url('../assets/img/hintergrund.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat; 
+}
+
+.hero-section-bg {
+    overflow: hidden;
+}
+
+.content-section {
+    overflow: hidden;
+}
+
+.position-panda {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    z-index: 1030; 
+    cursor: pointer;
+}
+
+.position-panda img {
+    max-width: 100px;
+}
+
+.content-overlap {
+    position: relative;
+    z-index: 2;
+}
+
+.main-content-box {
+    margin-top: 0px;
+    
+}
