@@ -14,7 +14,7 @@ defineProps({
 
 <template>
   <component
-    :is="href ? 'a' : 'button'"
+    :is="href ? 'a' : 'navButton'"
     :href="href"
     class="btn"
     :class="{

@@ -90,6 +90,7 @@ import Button from './components/button.vue';
         />
       </div>
     </section>
+
   </main>
 
   <Footer />

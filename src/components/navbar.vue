@@ -6,10 +6,10 @@ import Button from './button.vue';
   <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-white">
       <div class="container">
-        <a class="navbar-brand fw-bold text-primary" href="#">
+          <router-link class="navbar-brand fw-bold text-accent" to="/">
           <img src="../assets/icons/logoImage.png" alt="Logo" style="height: 30px; margin-right: 10px;">
           Projectify Pro
-        </a>
+          </router-link>
         
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
           <img src="../assets/icons/menue.png" alt="Menü" style="height: 24px;">
