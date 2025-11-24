@@ -1,5 +1,5 @@
 <script setup>
-import { products } from './data.js';
+//import { products } from './data.js';
 import Navbar from './components/navbar.vue';
 import Footer from './components/footer.vue';
 import ProductCard from './components/productCard.vue';

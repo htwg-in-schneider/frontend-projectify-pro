@@ -16,6 +16,7 @@ defineProps({
     </div>
     <p class="mb-1">{{ product.description }}</p>
     <small class="text-muted">Kategorie: {{ product.category }}</small>
+    <NavButton variant="accent" class="mt-auto" :to="`/product/${product.id}`"></NavButton>
   </NavButton>
 </template>
 
