@@ -3,6 +3,7 @@ import { products } from './data.js';
 import Navbar from './components/navbar.vue';
 import Footer from './components/footer.vue';
 import ProductCard from './components/productCard.vue';
+import Button from './components/button.vue';
 </script>
 
 <template>
@@ -15,7 +16,9 @@ import ProductCard from './components/productCard.vue';
           <div class="col-lg-6">
             <h1 class="display-4 fw-bold">Erfolg ist das Ziel, Projectify Pro der Weg.</h1>
             <p class="lead my-4">Das moderne Werkzeug, das Ihre Projektplanung und -analyse übersichtlich und effizient bündelt.</p>
-            <a href="#" class="btn btn-primary btn-lg me-2">Kostenlos starten</a>
+            
+            <Button href="#" variant="accent" class="btn-lg me-2">Kostenlos starten</Button>
+            
             <a href="#" class="text-decoration-underline text-dark me-2">Erfahre mehr</a>
           </div>
           <div class="col-lg-6">
@@ -87,7 +90,6 @@ import ProductCard from './components/productCard.vue';
         />
       </div>
     </section>
-
   </main>
 
   <Footer />

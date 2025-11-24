@@ -1,4 +1,5 @@
 <script setup>
+import Button from './button.vue';
 </script>
 
 <template>
@@ -17,12 +18,12 @@
         <div class="collapse navbar-collapse" id="mainNavbar">
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
             <li class="nav-item ms-lg-2">
-              <a class="btn btn-primary" href="#">Jetzt anmelden</a>
+              <Button href="#" variant="accent">Jetzt anmelden</Button>
             </li>
             <li class="nav-item ms-lg-2 d-none d-lg-block">
-              <a class="btn btn-outline-primary" href="#" aria-label="Menü">
+              <Button href="#" variant="secondary" aria-label="Menü">
                 <img src="../assets/icons/menue.png" alt="Menü" style="height: 24px; vertical-align: text-bottom;">
-              </a>
+              </Button>
             </li>
           </ul>
         </div>
@@ -30,6 +31,3 @@
     </nav>
   </header>
 </template>
-
-<style scoped>
-</style>
