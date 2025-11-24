@@ -1,7 +1,7 @@
 <script setup>
 import Footer from '@/components/footer.vue';
 import Navbar from '@/components/navbar.vue';
-import SpecialBanner from '@/components/SpecialBanner.vue';
+import SpecialBanner from '@/components/specialBanner.vue';
 import ProductCard from '@/components/productCard.vue';
 import { ref, onMounted } from 'vue';
 const url = 'https://dummyjson.com/products';
