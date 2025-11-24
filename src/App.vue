@@ -1,35 +1,16 @@
 <script setup>
+// Import der Daten
 import { products } from './data.js';
+
+// Import der neuen Komponenten
+import Navbar from './components/navbar.vue';
+import Footer from './components/footer.vue';
+import ProductCard from './components/productCard.vue';
 </script>
 
 <template>
-  <header>
-    <nav class="navbar navbar-expand-lg navbar-light bg-white">
-      <div class="container">
-        <a class="navbar-brand fw-bold text-primary" href="#">
-          <img src="./assets/icons/logoImage.png" alt="Logo" style="height: 30px; margin-right: 10px;">
-          Projectify Pro
-        </a>
-        
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
-          <img src="./assets/icons/menue.png" alt="Menü" style="height: 24px;">
-        </button>
-
-        <div class="collapse navbar-collapse" id="mainNavbar">
-          <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
-            <li class="nav-item ms-lg-2">
-              <a class="btn btn-primary" href="#">Jetzt anmelden</a>
-            </li>
-            <li class="nav-item ms-lg-2 d-none d-lg-block">
-              <a class="btn btn-outline-primary" href="#" aria-label="Menü">
-                <img src="./assets/icons/menue.png" alt="Menü" style="height: 24px; vertical-align: text-bottom;">
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-  </header>
+  <!-- 1. Navbar Komponente einbinden -->
+  <Navbar />
 
   <main>
     <section class="hero-section-bg">
@@ -50,6 +31,7 @@ import { products } from './data.js';
 
       <div class="container content-overlap pb-5">
         <div class="row g-4 mt-4">
+          <!-- Statische Cards bleiben hier, da sie spezifisch für die Landingpage sind -->
           <div class="col-lg-4">
             <div class="card h-100 text-center shadow border-0 p-3">
               <div class="card-body">
@@ -100,32 +82,24 @@ import { products } from './data.js';
       </a>
     </div>
 
-    <section class="container mt-5 mb-5">
+    <section class="container mt-5 mb-5 text-black">
       <h1 class="fw-bold mb-4">Unsere Dienstleistungen</h1>
       <div class="list-group shadow-sm">
-        <a href="#" class="list-group-item list-group-item-action" v-for="product in products" :key="product.id">
-          <div class="d-flex w-100 justify-content-between">
-            <h5 class="mb-1">{{ product.title }}</h5>
-            <small class="text-muted">{{ product.price }} €</small>
-          </div>
-          <p class="mb-1">{{ product.description }}</p>
-          <small class="text-muted">Kategorie: {{ product.category }}</small>
-        </a>
+        <!-- 2. ProductCard Komponente verwenden und loopen -->
+        <ProductCard 
+          v-for="item in products" 
+          :key="item.id" 
+          :product="item" 
+        />
       </div>
     </section>
 
   </main>
 
-  <footer class="bg-white text-center py-4 mt-5 border-top">
-    <div class="container">
-      <nav class="nav justify-content-center">
-        <a class="nav-link text-muted" href="#">Datenschutz</a>
-        <a class="nav-link text-muted" href="#">Impressum</a>
-        <a class="nav-link text-muted" href="#">Kontakt</a>
-      </nav>
-      <p class="text-muted mt-2 mb-0">&copy; 2025 Projectify Pro. Alle Rechte vorbehalten.</p>
-    </div>
-  </footer>
+  <!-- 3. Footer Komponente einbinden -->
+  <Footer />
 </template>
 
-<style scoped></style>
+<style scoped>
+/* Styles bleiben in App.vue oder wandern in style.css global */
+</style>
