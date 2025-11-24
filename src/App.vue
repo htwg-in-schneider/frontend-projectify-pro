@@ -1,15 +1,11 @@
 <script setup>
-// Import der Daten
 import { products } from './data.js';
-
-// Import der neuen Komponenten
 import Navbar from './components/navbar.vue';
 import Footer from './components/footer.vue';
 import ProductCard from './components/productCard.vue';
 </script>
 
 <template>
-  <!-- 1. Navbar Komponente einbinden -->
   <Navbar />
 
   <main>
@@ -31,7 +27,6 @@ import ProductCard from './components/productCard.vue';
 
       <div class="container content-overlap pb-5">
         <div class="row g-4 mt-4">
-          <!-- Statische Cards bleiben hier, da sie spezifisch für die Landingpage sind -->
           <div class="col-lg-4">
             <div class="card h-100 text-center shadow border-0 p-3">
               <div class="card-body">
@@ -85,7 +80,6 @@ import ProductCard from './components/productCard.vue';
     <section class="container mt-5 mb-5 text-black">
       <h1 class="fw-bold mb-4">Unsere Dienstleistungen</h1>
       <div class="list-group shadow-sm">
-        <!-- 2. ProductCard Komponente verwenden und loopen -->
         <ProductCard 
           v-for="item in products" 
           :key="item.id" 
@@ -96,10 +90,7 @@ import ProductCard from './components/productCard.vue';
 
   </main>
 
-  <!-- 3. Footer Komponente einbinden -->
   <Footer />
 </template>
 
-<style scoped>
-/* Styles bleiben in App.vue oder wandern in style.css global */
-</style>
+<style scoped></style>
