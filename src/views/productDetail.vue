@@ -5,7 +5,8 @@ import SpecialBanner from '@/components/specialBanner.vue';
 import NavButton from '@/components/navButton.vue';
 import Button from '@/components/button.vue';
 import { ref, onMounted } from 'vue';
-const url = 'https://dummyjson.com/products';
+//const url = 'https://dummyjson.com/products';
+const url = 'http://localhost:8081/api/product';
 
 
 const props = defineProps({

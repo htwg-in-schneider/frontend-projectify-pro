@@ -4,7 +4,8 @@ import Navbar from '@/components/navbar.vue';
 import SpecialBanner from '@/components/specialBanner.vue';
 import ProductCard from '@/components/productCard.vue';
 import { ref, onMounted } from 'vue';
-const url = 'https://dummyjson.com/products';
+//const url = 'https://dummyjson.com/products';
+const url = 'http://localhost:8081/api/product';
 
 const products = ref([]);
 onMounted(async () => fetchProducts());
@@ -15,8 +16,8 @@ async function fetchProducts() {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    products.value = await response.json();
-    console.log(products.value);
+    const data = await response.json();
+    products.value = data.products;
   } catch (error) {
     console.error('Error fetching products:', error);
   }

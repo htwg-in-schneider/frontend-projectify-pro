@@ -1,9 +1,12 @@
 <script setup>
 //import { products } from './data.js';
+import { ref, onMounted } from 'vue';
 import Navbar from './components/navbar.vue';
 import Footer from './components/footer.vue';
 import ProductCard from './components/productCard.vue';
 import Button from './components/button.vue';
+//const url = 'https://dummyjson.com/products';
+const url = 'http://localhost:8081/api/product';
 </script>
 
 <template>
