@@ -1,5 +1,5 @@
 <script setup>
-defineProps({
+const props = defineProps({
   variant: {
     type: String,
     default: 'accent',
@@ -8,13 +8,31 @@ defineProps({
   href: {
     type: String,
     default: null
+  },
+  to: {
+    type: String,
+    default: null
   }
 });
 </script>
 
 <template>
-  <component
-    :is="href ? 'a' : 'navButton'"
+  <!-- router-link -->
+  <router-link
+    v-if="to"
+    :to="to"
+    class="btn"
+    :class="{
+      'btn-primary': variant === 'accent',
+      'btn-outline-primary': variant === 'secondary'
+    }"
+  >
+    <slot />
+  </router-link>
+
+  <!-- klassischer link -->
+  <a
+    v-else-if="href"
     :href="href"
     class="btn"
     :class="{
@@ -23,8 +41,17 @@ defineProps({
     }"
   >
     <slot />
-  </component>
-</template>
+  </a>
 
-<style scoped>
-</style>
+  <!-- echter Button -->
+  <button
+    v-else
+    class="btn"
+    :class="{
+      'btn-primary': variant === 'accent',
+      'btn-outline-primary': variant === 'secondary'
+    }"
+  >
+    <slot />
+  </button>
+</template>

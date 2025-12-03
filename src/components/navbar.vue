@@ -1,5 +1,16 @@
 <script setup>
 import Button from './button.vue';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+
+
+const route = useRoute();
+
+
+const shouldHideLoginButton = computed(() => {
+  return route.meta.hideLoginButton; 
+});
+
 </script>
 
 <template>
@@ -17,8 +28,8 @@ import Button from './button.vue';
 
         <div class="collapse navbar-collapse" id="mainNavbar">
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
-            <li class="nav-item ms-lg-2">
-              <Button href="#" variant="accent">Jetzt anmelden</Button>
+            <li class="nav-item ms-lg-2" v-if="!shouldHideLoginButton">
+              <Button to="/login" variant="accent">Jetzt anmelden</Button>
             </li>
             <li class="nav-item ms-lg-2 d-none d-lg-block">
               <Button href="#" variant="secondary" aria-label="Menü">
