@@ -4,6 +4,7 @@ import Button from '@/components/button.vue';
 import TaskModal from '@/components/TaskModal.vue';
 import CreateTaskForm from '@/components/CreateTaskForm.vue';
 import EditTaskForm from '@/components/EditTaskForm.vue';
+import TaskFilter from '@/components/TaskFilter.vue';
 
 import { ref, onMounted } from 'vue';
 
@@ -22,23 +23,34 @@ const showCreate = ref(false);
 const showEdit = ref(false);
 const selectedTaskId = ref(null);
 
-
 const editForm = ref(null);
 const createForm = ref(null);
 
 let createFormBuffer = null;
 
+/* FILTER STATES */
+const filterTitle = ref("");
+const filterStatus = ref("");
 
 onMounted(loadTasks);
 
+/* LOAD WITH FILTERS */
 async function loadTasks() {
   loadingError.value = null;
+
   try {
-    tasks.value = await getAllTasks();
+    tasks.value = await getAllTasks(filterTitle.value, filterStatus.value);
   } catch (e) {
     console.error(e);
     loadingError.value = 'Fehler beim Laden der Aufgaben. Ist das Backend aktiv?';
   }
+}
+
+/* FILTER EVENT */
+function onFilterChange(filter) {
+  filterTitle.value = filter.title;
+  filterStatus.value = filter.status;
+  loadTasks();
 }
 
 /* POPUP ÖFFNEN */
@@ -58,7 +70,6 @@ function onCreateFormInput(body) {
 
 async function submitCreateTask() {
 
-  // Formular auslösen -> CreateTaskForm.vue ruft submitForm() auf
   createForm.value?.submitForm();
 
   if (!createFormBuffer) {
@@ -107,7 +118,6 @@ async function onDeleteTask() {
                 Projekt erstellen
               </Button>
 
-              <!-- NEUE AUFGABE -->
               <Button 
                 variant="primary" 
                 class="me-2 mb-2 mb-sm-0 btn-custom-blue"
@@ -121,6 +131,9 @@ async function onDeleteTask() {
               </Button>
             </div>
           </div>
+
+          <!-- FILTER-KOMPONENTE -->
+          <TaskFilter @filter-change="onFilterChange" />
 
           <!-- Fehler -->
           <div v-if="loadingError" class="alert alert-danger">
@@ -165,13 +178,10 @@ async function onDeleteTask() {
     @close="showCreate = false"
   >
 
-    <!-- FORMULAR MIT REF -->
     <CreateTaskForm ref="createForm" @submit="onCreateFormInput" />
 
     <template #footer>
       <button class="btn btn-secondary" @click="showCreate = false">Abbrechen</button>
-
-      <!-- Formular absenden -->
       <button class="btn btn-success" @click="submitCreateTask">Erstellen</button>
     </template>
 
@@ -185,20 +195,17 @@ async function onDeleteTask() {
     @close="showEdit = false"
   >
 
-    
-  <EditTaskForm 
-    ref="editForm"
-    :taskId="selectedTaskId"
-    :backend="true"
-    @save="onSaveTask"
-    @delete="onDeleteTask"
-  />
-
+    <EditTaskForm 
+      ref="editForm"
+      :taskId="selectedTaskId"
+      :backend="true"
+      @save="onSaveTask"
+      @delete="onDeleteTask"
+    />
 
     <template #footer>
       <button class="btn btn-danger" @click="onDeleteTask()">Löschen</button>
       <button class="btn btn-success" @click="$refs.editForm.save()">Speichern</button>
-
     </template>
 
   </TaskModal>
@@ -209,7 +216,6 @@ async function onDeleteTask() {
 
 
 <style scoped>
-/* IDENTISCH zu Dashboard */
 .dashboard-page.container {
   padding-top: 2rem;
   padding-bottom: 2rem;

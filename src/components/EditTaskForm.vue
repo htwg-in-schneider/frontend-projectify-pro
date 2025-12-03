@@ -1,10 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { defineProps, defineEmits } from 'vue';
+import TaskComments from '@/components/TaskComments.vue';
 
 const props = defineProps({
   taskId: Number,
-  backend: Boolean    // CHANGED! true = load from API, false = dummy
+  backend: Boolean
 });
 
 const emit = defineEmits(['save', 'delete']);
@@ -17,10 +18,12 @@ const duration = ref('');
 const status = ref('');
 
 async function loadTaskBackend() {
-  const res = await fetch(`http://localhost:8081/api/task/${props.taskId}`);
+  const BASE_URL = import.meta.env.VITE_API_URL;
+  const res = await fetch(`${BASE_URL}/api/task/${props.taskId}`);
   const data = await res.json();
   mapTask(data);
 }
+
 
 function loadTaskDummy() {
   const dummy = JSON.parse(localStorage.getItem('dummyTasks')) || [];
@@ -60,18 +63,16 @@ function save() {
     user: user.value,
     startDate: startDate.value,
     endDate: endDate.value,
-    duration: Number(duration.value),   // WICHTIG!
+    duration: Number(duration.value),
     status: status.value
   });
 }
-
 
 function del() {
   emit('delete');
 }
 
 defineExpose({ save });
-
 </script>
 
 <template>
@@ -97,5 +98,8 @@ defineExpose({ save });
 
     <label class="form-label mt-3">Enddatum</label>
     <input type="date" class="form-control" v-model="endDate" />
+
+    
+    <TaskComments :taskId="props.taskId" />
   </div>
 </template>
