@@ -4,31 +4,33 @@
       
       <h4 class="text-center mb-4 login-title">Login Daten eingeben</h4> 
 
-      <form @submit.prevent>
+      <form @submit.prevent="login">
         <div class="mb-3">
           <label for="username" class="form-label">Benutzername</label>
           <input 
             type="text" 
             class="form-control" 
             id="username" 
-            v-model="username"  placeholder="" 
+            v-model="username"
+            placeholder=""
           />
         </div>
 
-        <div class="mb-4"> 
+        <div class="mb-4">
           <label for="password" class="form-label">Passwort</label>
           <input 
-            type="password"  
-            class="form-control" 
-            id="password" 
-            v-model="password"  placeholder="" 
+            type="password"
+            class="form-control"
+            id="password"
+            v-model="password"
+            placeholder=""
           />
         </div>
         
-        <div class="d-grid gap-2 mb-4"> 
+        <div class="d-grid gap-2 mb-4">
           <button type="submit" class="btn btn-primary">Anmelden</button>
         </div>
-        </form>
+      </form>
 
       <p class="text-center mt-3">
         Noch kein Account?
@@ -39,10 +41,18 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'; 
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const username = ref('annemarie.schuler');
-const password = ref('passwort'); 
+const username = ref('annemarie.schuler')
+const password = ref('passwort')
+
+const router = useRouter()
+
+function login() {
+  // später kommt hier echte Login-Logik  
+  router.push('/tasks')
+}
 </script>
 
 <style scoped>
@@ -51,11 +61,11 @@ const password = ref('passwort');
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  width: 100%; 
+  width: 100%;
   position: relative;
   overflow: hidden;
 
-  font-family: 'Montserrat', sans-serif; 
+  font-family: 'Montserrat', sans-serif;
 
   background-image: url('../assets/img/hintergrund.png');
   background-size: cover;
@@ -64,20 +74,18 @@ const password = ref('passwort');
   background-repeat: no-repeat;
 }
 
-
 .login-title {
-    font-size: 1.5rem; 
-    font-weight: 500;
+  font-size: 1.5rem;
+  font-weight: 500;
 }
-
 
 .login-card {
   width: 100%;
-  max-width: 400px; 
-  background: rgba(255, 255, 255, 0.85); 
-  backdrop-filter: blur(10px); 
-  border-radius: 1rem; 
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.1); 
-  z-index: 10; 
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 </style>
