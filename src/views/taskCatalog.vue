@@ -1,26 +1,93 @@
 <script setup>
 import TaskCard from '@/components/taskCard.vue';
 import Button from '@/components/button.vue';
+import TaskModal from '@/components/TaskModal.vue';
+import CreateTaskForm from '@/components/CreateTaskForm.vue';
+import EditTaskForm from '@/components/EditTaskForm.vue';
+
 import { ref, onMounted } from 'vue';
 
-const url = 'http://localhost:8081/api/task';
+/* SERVICE IMPORT */
+import {
+  getAllTasks,
+  createTask,
+  updateTask,
+  deleteTask
+} from '@/api/taskService.js';
+
 const tasks = ref([]);
 const loadingError = ref(null);
 
-onMounted(fetchTasks);
+const showCreate = ref(false);
+const showEdit = ref(false);
+const selectedTaskId = ref(null);
 
-async function fetchTasks() {
+
+const editForm = ref(null);
+const createForm = ref(null);
+
+let createFormBuffer = null;
+
+
+onMounted(loadTasks);
+
+async function loadTasks() {
   loadingError.value = null;
   try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-    tasks.value = await response.json();
+    tasks.value = await getAllTasks();
   } catch (e) {
     console.error(e);
     loadingError.value = 'Fehler beim Laden der Aufgaben. Ist das Backend aktiv?';
   }
 }
+
+/* POPUP ÖFFNEN */
+function openCreateTask() {
+  showCreate.value = true;
+}
+
+function openEditTask(id) {
+  selectedTaskId.value = id;
+  showEdit.value = true;
+}
+
+/* CREATE */
+function onCreateFormInput(body) {
+  createFormBuffer = body;
+}
+
+async function submitCreateTask() {
+
+  // Formular auslösen -> CreateTaskForm.vue ruft submitForm() auf
+  createForm.value?.submitForm();
+
+  if (!createFormBuffer) {
+    alert("Bitte Formular ausfüllen!");
+    return;
+  }
+
+  await createTask(createFormBuffer);
+  showCreate.value = false;
+  createFormBuffer = null;
+  loadTasks();
+}
+
+/* SAVE */
+async function onSaveTask(body) {
+  await updateTask(selectedTaskId.value, body);
+  showEdit.value = false;
+  loadTasks();
+}
+
+/* DELETE */
+async function onDeleteTask() {
+  await deleteTask(selectedTaskId.value);
+  showEdit.value = false;
+  loadTasks();
+}
 </script>
+
+
 
 <template>
 
@@ -40,7 +107,12 @@ async function fetchTasks() {
                 Projekt erstellen
               </Button>
 
-              <Button variant="primary" class="me-2 mb-2 mb-sm-0 btn-custom-blue">
+              <!-- NEUE AUFGABE -->
+              <Button 
+                variant="primary" 
+                class="me-2 mb-2 mb-sm-0 btn-custom-blue"
+                @click="openCreateTask"
+              >
                 Neue Aufgabe
               </Button>
 
@@ -63,8 +135,15 @@ async function fetchTasks() {
           <!-- Aufgabenliste -->
           <div class="kanban-area">
             <div class="row g-4">
-              <div v-for="task in tasks" :key="task.id" class="col-lg-4 col-md-6">
-                <TaskCard :task="task" />
+              <div 
+                v-for="task in tasks" 
+                :key="task.id" 
+                class="col-lg-4 col-md-6"
+              >
+                <TaskCard 
+                  :task="task"
+                  @click="openEditTask(task.id)"
+                />
               </div>
             </div>
           </div>
@@ -72,13 +151,62 @@ async function fetchTasks() {
         </div>
       </main>
 
-      <!-- Unsichtbare Sidebar für Layout -->
+      <!-- Unsichtbare Sidebar -->
       <aside class="col-lg-3 sidebar p-4 invisible-sidebar"></aside>
 
     </div>
   </div>
 
+
+  <!-- CREATE MODAL -->
+  <TaskModal 
+    :show="showCreate"
+    title="Neue Aufgabe"
+    @close="showCreate = false"
+  >
+
+    <!-- FORMULAR MIT REF -->
+    <CreateTaskForm ref="createForm" @submit="onCreateFormInput" />
+
+    <template #footer>
+      <button class="btn btn-secondary" @click="showCreate = false">Abbrechen</button>
+
+      <!-- Formular absenden -->
+      <button class="btn btn-success" @click="submitCreateTask">Erstellen</button>
+    </template>
+
+  </TaskModal>
+
+
+  <!-- EDIT MODAL -->
+  <TaskModal
+    :show="showEdit"
+    title="Aufgabe bearbeiten"
+    @close="showEdit = false"
+  >
+
+    
+  <EditTaskForm 
+    ref="editForm"
+    :taskId="selectedTaskId"
+    :backend="true"
+    @save="onSaveTask"
+    @delete="onDeleteTask"
+  />
+
+
+    <template #footer>
+      <button class="btn btn-danger" @click="onDeleteTask()">Löschen</button>
+      <button class="btn btn-success" @click="$refs.editForm.save()">Speichern</button>
+
+    </template>
+
+  </TaskModal>
+
 </template>
+
+
+
 
 <style scoped>
 /* IDENTISCH zu Dashboard */
@@ -127,7 +255,6 @@ async function fetchTasks() {
   color: white !important;
 }
 
-/* Unsichtbare Sidebar für gleiches Layout */
 .invisible-sidebar {
   opacity: 0;
   pointer-events: none;

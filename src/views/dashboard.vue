@@ -8,16 +8,27 @@
           
           <div class="kanban-area">
 
+            <!-- HEADER -->
             <div class="d-flex justify-content-between align-items-center mb-4 dashboard-header-container">
               <h2 class="fw-bold mb-0 dashboard-title">Projekt Dashboard</h2> 
               
               <div class="d-flex flex-wrap align-items-center">
                 <Button variant="primary" class="me-2 mb-2 mb-sm-0 btn-custom-blue">Projekt erstellen</Button>
-                <Button variant="primary" class="me-2 mb-2 mb-sm-0 btn-custom-blue">Neue Aufgabe</Button>
+                
+                <!-- Neue Aufgabe Button -->
+                <Button 
+                  variant="primary" 
+                  class="me-2 mb-2 mb-sm-0 btn-custom-blue"
+                  @click="openCreateTask"
+                >
+                  Neue Aufgabe
+                </Button>
+
                 <Button variant="success" class="mb-2 mb-sm-0 btn-custom-green">Rechnung erstellen</Button>
               </div>
             </div>
 
+            <!-- KANBAN -->
             <div class="row g-4 kanban-container">
               
               <div class="col-md-4">
@@ -26,7 +37,8 @@
                   <TaskCard 
                     v-for="task in filteredTasks?.Erledigt" 
                     :key="task.id" 
-                    :task="task" 
+                    :task="task"
+                    @click="openEditTask(task.id)"
                   />
                 </div>
               </div>
@@ -37,7 +49,8 @@
                   <TaskCard 
                     v-for="task in filteredTasks?.['In Bearbeitung']" 
                     :key="task.id" 
-                    :task="task" 
+                    :task="task"
+                    @click="openEditTask(task.id)"
                   />
                 </div>
               </div>
@@ -48,7 +61,8 @@
                   <TaskCard 
                     v-for="task in filteredTasks?.Review" 
                     :key="task.id" 
-                    :task="task" 
+                    :task="task"
+                    @click="openEditTask(task.id)"
                   />
                 </div>
               </div>
@@ -58,8 +72,8 @@
         </div>
       </main>
 
+      <!-- SIDEBAR -->
       <aside class="col-lg-3 sidebar p-4">
-        
         <div class="sidebar-block mb-5">
           <h4 class="d-flex justify-content-between align-items-center sidebar-header">
             Mitarbeiter <button class="btn btn-sm btn-link text-primary">+</button>
@@ -85,17 +99,117 @@
 
       </aside>
     </div>
+
+    <!-- POPUP: Neue Aufgabe -->
+    <TaskModal 
+      :show="showCreate" 
+      title="Neue Aufgabe" 
+      @close="showCreate = false"
+    >
+      <CreateTaskForm @submit="createDummyTask" />
+
+      <template #footer>
+        <button class="btn btn-secondary" @click="showCreate = false">Abbrechen</button>
+        <button class="btn btn-success" @click="createDummyTask">Erstellen</button>
+      </template>
+    </TaskModal>
+
+
+    <!-- POPUP: Aufgabe bearbeiten -->
+    <TaskModal 
+      :show="showEdit" 
+      title="Aufgabe bearbeiten" 
+      @close="showEdit = false"
+    >
+      <EditTaskForm 
+        :taskId="selectedTaskId" 
+        :backend="false"
+        @save="saveDummyTask" 
+        @delete="deleteDummyTask" 
+      />
+
+      <template #footer>
+        <button class="btn btn-danger" @click="deleteDummyTask">Löschen</button>
+        <button class="btn btn-success" @click="saveDummyTask">Speichern</button>
+      </template>
+    </TaskModal>
+
   </div>
 </template>
 
 
+
 <script setup>
-import { computed } from 'vue';
+/* IMPORTS */
+import { ref, computed } from 'vue';
 import { tasks, staff, projects } from '@/data.js'; 
+
 import TaskCard from '@/components/taskCard.vue'; 
 import Button from '@/components/button.vue'; 
+import TaskModal from '@/components/TaskModal.vue';
+import CreateTaskForm from '@/components/CreateTaskForm.vue';
+import EditTaskForm from '@/components/EditTaskForm.vue';
 
-// Gruppiert Fake-Tasks nach Status
+
+/* MODAL STATES */
+const showCreate = ref(false);
+const showEdit = ref(false);
+const selectedTaskId = ref(null);
+
+
+/* LOCAL STORAGE DUMMY TASKS */
+localStorage.setItem('dummyTasks', JSON.stringify(tasks));
+const dummyTasks = ref(JSON.parse(localStorage.getItem('dummyTasks')));
+
+/* OPEN MODALS */
+function openCreateTask() {
+  showCreate.value = true;
+}
+
+function openEditTask(id) {
+  selectedTaskId.value = id;
+  showEdit.value = true;
+}
+
+
+/* CRUD: DUMMY MODE ONLY */
+function createDummyTask(body) {
+  const list = JSON.parse(localStorage.getItem('dummyTasks'));
+  list.push({ id: Date.now(), ...body });
+
+  localStorage.setItem('dummyTasks', JSON.stringify(list));
+  dummyTasks.value = list;
+
+  alert('Aufgabe erstellt!');
+  showCreate.value = false;
+}
+
+function saveDummyTask(body) {
+  let list = JSON.parse(localStorage.getItem('dummyTasks'));
+  const index = list.findIndex(t => t.id === selectedTaskId.value);
+
+  list[index] = { id: selectedTaskId.value, ...body };
+
+  localStorage.setItem('dummyTasks', JSON.stringify(list));
+  dummyTasks.value = list;
+
+  alert('Änderungen gespeichert!');
+  showEdit.value = false;
+}
+
+function deleteDummyTask() {
+  let list = JSON.parse(localStorage.getItem('dummyTasks'));
+  list = list.filter(t => t.id !== selectedTaskId.value);
+
+  localStorage.setItem('dummyTasks', JSON.stringify(list));
+  dummyTasks.value = list;
+
+  alert('Aufgabe gelöscht!');
+  showEdit.value = false;
+}
+
+
+/* GROUP TASKS BY STATUS */
 const filteredTasks = computed(() => {
   const grouped = {
     'Erledigt': [],
@@ -103,17 +217,14 @@ const filteredTasks = computed(() => {
     'Review': []
   };
 
-  if (Array.isArray(tasks)) {
-    tasks.forEach(task => {
-      if (grouped[task.status]) {
-        grouped[task.status].push(task);
-      }
-    });
-  }
+  dummyTasks.value.forEach(task => {
+    if (grouped[task.status]) grouped[task.status].push(task);
+  });
 
   return grouped;
 });
 </script>
+
 
 
 <style scoped>

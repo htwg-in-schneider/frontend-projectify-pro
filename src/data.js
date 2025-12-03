@@ -1,4 +1,4 @@
-
+/* 
 export const products = [
     {
         id: 1,
@@ -33,7 +33,7 @@ export const products = [
         price: 200.0,
     },
 ];
-
+ */
 //dashboard
 
 export const tasks = [

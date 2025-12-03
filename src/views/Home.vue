@@ -1,10 +1,7 @@
 <script setup>
-import { products } from '@/data.js';
-//import { ref, onMounted } from 'vue';
-import ProductCard from '@/components/taskCard.vue';
-import Button from '@/components/button.vue';
-//const url = 'https://dummyjson.com/products';
-const url = 'http://localhost:8081/api/product';
+//import Navbar from '@/components/navbar.vue'
+//import Footer from '@/components/footer.vue'
+import Button from '@/components/button.vue'
 </script>
 
 <template>
@@ -16,12 +13,14 @@ const url = 'http://localhost:8081/api/product';
         <div class="row align-items-center g-5">
           <div class="col-lg-6">
             <h1 class="display-4 fw-bold">Erfolg ist das Ziel, Projectify Pro der Weg.</h1>
-            <p class="lead my-4">Das moderne Werkzeug, das Ihre Projektplanung und -analyse übersichtlich und effizient bündelt.</p>
-            
+            <p class="lead my-4">
+              Das moderne Werkzeug, das Ihre Projektplanung und -analyse übersichtlich und effizient bündelt.
+            </p>
+
             <Button href="#" variant="accent" class="btn-lg me-2">Kostenlos starten</Button>
-            
             <a href="#" class="text-decoration-underline text-dark me-2">Erfahre mehr</a>
           </div>
+
           <div class="col-lg-6">
             <img src="@/assets/img/arbeitsPakete.png" alt="Projektmodule" class="img-fluid rounded mb-4">
             <img src="@/assets/img/projektVerlauf.png" alt="Gantt Diagramm" class="img-fluid rounded">
@@ -39,6 +38,7 @@ const url = 'http://localhost:8081/api/product';
               </div>
             </div>
           </div>
+
           <div class="col-lg-4">
             <div class="card h-100 text-center shadow border-0 p-3">
               <div class="card-body">
@@ -47,6 +47,7 @@ const url = 'http://localhost:8081/api/product';
               </div>
             </div>
           </div>
+
           <div class="col-lg-4">
             <div class="card h-100 text-center shadow border-0 p-3">
               <div class="card-body">
@@ -64,11 +65,27 @@ const url = 'http://localhost:8081/api/product';
         <div class="bg-white bg-opacity-50 p-5 rounded-3 shadow content-overlap main-content-box text-black">
           <div class="row justify-content-center">
             <div class="col-lg-10">
-              <p class="lead">Mit Projectify Pro organisieren Sie Ihre Projekte schnell, übersichtlich und effizient ganz ohne komplizierte Tools oder lange Excel-Tabellen.</p>
-              <p class="lead">Erstellen Sie neue Projekte, planen Sie Aufgaben und behalten Sie den aktuellen Status Ihres Teams jederzeit im Blick.</p>
-              <p class="lead">Dank der integrierten Zeiterfassung sehen Sie sofort, wie viel Aufwand in jede Aufgabe fließt und können Fortschritte transparent nachvollziehen.</p>
-              <p class="lead">Kommentare und Notizen ermöglichen eine klare Kommunikation direkt im Projekt, ganz ohne E-Mails oder externe Chats.</p>
-              <p class="lead">Die moderne Benutzeroberfläche sorgt dafür, dass Sie Projekte intuitiv per Drag and Drop verwalten können. So sparen Sie Zeit im Alltag und konzentrieren sich auf das, was wirklich zählt – Ihre Projekte erfolgreich abzuschließen.</p>
+              <p class="lead">
+                Mit Projectify Pro organisieren Sie Ihre Projekte schnell, übersichtlich und effizient ganz ohne
+                komplizierte Tools oder lange Excel-Tabellen.
+              </p>
+              <p class="lead">
+                Erstellen Sie neue Projekte, planen Sie Aufgaben und behalten Sie den aktuellen Status Ihres Teams
+                jederzeit im Blick.
+              </p>
+              <p class="lead">
+                Dank der integrierten Zeiterfassung sehen Sie sofort, wie viel Aufwand in jede Aufgabe fließt und
+                können Fortschritte transparent nachvollziehen.
+              </p>
+              <p class="lead">
+                Kommentare und Notizen ermöglichen eine klare Kommunikation direkt im Projekt, ganz ohne E-Mails oder
+                externe Chats.
+              </p>
+              <p class="lead">
+                Die moderne Benutzeroberfläche sorgt dafür, dass Sie Projekte intuitiv per Drag and Drop verwalten
+                können. So sparen Sie Zeit im Alltag und konzentrieren sich auf das, was wirklich zählt – Ihre Projekte
+                erfolgreich abzuschließen.
+              </p>
             </div>
           </div>
         </div>
@@ -80,17 +97,6 @@ const url = 'http://localhost:8081/api/product';
         <img src="@/assets/icons/roterPanda.png" alt="Klick mich">
       </a>
     </div>
-
-    <section class="container mt-5 mb-5 text-black">
-      <h1 class="fw-bold mb-4">Unsere Dienstleistungen</h1>
-      <div class="list-group shadow-sm">
-        <ProductCard 
-          v-for="item in products" 
-          :key="item.id" 
-          :product="item" 
-        />
-      </div>
-    </section>
 
   </main>
 

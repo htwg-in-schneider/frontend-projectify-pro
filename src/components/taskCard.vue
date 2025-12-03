@@ -1,14 +1,19 @@
 <script setup>
+// Props der Task-Karte
 const props = defineProps({
   task: {
     type: Object,
     required: true,
   },
 });
+
+// Event an Parent senden, wenn Karte geklickt wird
+const emit = defineEmits(["click"]);
 </script>
 
 <template>
-  <div class="card mb-3 task-card shadow-sm">
+  <!-- Ganze Karte klickbar -->
+  <div class="card mb-3 task-card shadow-sm" @click="emit('click')">
     <div class="card-body">
 
       <!-- Titel -->
@@ -16,7 +21,7 @@ const props = defineProps({
 
       <!-- Zugewiesen an -->
       <p class="card-text small text-muted mb-2">
-        {{ task.assignedTo }} |
+        {{ task.user }}
       </p>
 
       <!-- Details -->
@@ -28,7 +33,9 @@ const props = defineProps({
 
       <!-- Kommentar-Icon -->
       <div class="comment-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-text" viewBox="0 0 16 16">
+        <svg xmlns="http://www.w3.org/2000/svg" 
+             width="16" height="16" fill="currentColor" 
+             class="bi bi-chat-text" viewBox="0 0 16 16">
           <path d="M2.678 11.894a1 1 0 0 1 .287.801 10.97 10.97 0 0 1-.303 1.099c-.339.623.242 1.018.808.576A8.996 8.996 0 0 0 8 14c4.418 0 8-3.134 8-7s-3.582-7-8-7-8 3.134-8 7c0 1.76.743 3.37 1.97 4.619zm-.881-.276A9.09 9.09 0 0 0 1 7c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7c-.297 0-.585-.011-.868-.031a1 1 0 0 1-.686-.178l-.254-.238a2 2 0 0 0-1.282-.445H4.498a1 1 0 0 1-.84-.535z"/>
           <path d="M4 5.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM4 8a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5A.5.5 0 0 1 4 8z"/>
         </svg>
@@ -41,13 +48,19 @@ const props = defineProps({
 <style scoped>
 .task-card {
   position: relative;
-  border-left: 3px solid var(--bs-info, #0dcaf0); 
+  border-left: 3px solid var(--bs-info, #0dcaf0);
+  cursor: pointer;
+  transition: transform 0.1s ease-in-out;
+}
+
+.task-card:hover {
+  transform: scale(1.01);
 }
 
 .comment-icon {
   position: absolute;
   bottom: 15px;
   right: 15px;
-  color: #aaa; 
+  color: #aaa;
 }
 </style>
