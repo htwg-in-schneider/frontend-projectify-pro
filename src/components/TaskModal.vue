@@ -8,10 +8,7 @@ const props = defineProps({
 
 const emit = defineEmits(["close"]);
 
-/* 
-  Hintergrundklick soll schließen,
-  aber Klick IM MODAL soll NICHT schließen.
-*/
+
 function onBackdropClick(event) {
   if (event.target === event.currentTarget) {
     emit("close");
