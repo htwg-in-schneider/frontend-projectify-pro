@@ -5,6 +5,7 @@ import Navbar from '@/components/navbar.vue'
 import Footer from '@/components/footer.vue'
 
 const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0()
+const profileData = ref(null)
 const bearerToken = ref('')
 const error = ref('')
 
@@ -13,13 +14,36 @@ function copyToClipboard(event) {
   navigator.clipboard.writeText(event.target.value)
 }
 
+function getRoleName(constant) {
+  switch (constant) {
+    case 'ADMIN':
+      return 'Administrator'
+    case 'REGULAR':
+      return 'regulärer Benutzer'
+    default:
+      return constant;
+  }
+}
+
 onMounted(async () => {
   if (isAuthenticated.value) {
     try {
       const token = await getAccessTokenSilently()
       bearerToken.value = token
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        profileData.value = await response.json()
+      } else {
+        error.value = `Fehler beim Laden des Profils: ${response.status} ${response.statusText}`
+      }
+
     } catch (e) {
-       error.value = `Fehler beim Laden des Tokens: ${e.message}`
+        error.value = `Fehler beim Laden des Profils: ${e.message}`
       console.warn('Could not get token:', e)
     }
   }
@@ -40,10 +64,12 @@ onMounted(async () => {
         <h3 class="mb-0">Benutzer-Profil</h3>
       </div>
       <div class="card-body text-center">
-        <div v-if="user">
-          <img :src="user.picture" :alt="user.name" class="rounded-circle mb-3 border border-3 border-primary"
-            width="150" height="150">
-          <h4 class="card-title">{{ user.name }}</h4>
+        <div v-if="profileData">
+<!--           <img :src="user.picture" :alt="user.name" class="rounded-circle mb-3 border border-3 border-primary"
+            width="150" height="150"> -->
+          <h4 class="card-title">{{ profileData.name }}</h4>
+          <p class="card-text text-muted">{{ profileData.email }}</p>
+          <p><strong>Rolle:</strong> {{ getRoleName(profileData.role) }}</p>
         </div>
         <div v-else>
           <p class="card-text text-muted warning">
