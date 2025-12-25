@@ -6,7 +6,17 @@ import { createPinia } from 'pinia'
 
 const pinia = createPinia()
 
+const auth0 = createAuth0({
+    domain: import.meta.env.VITE_AUTH0_DOMAIN,
+    clientId: import.meta.env.VITE_AUTH0_CLIENT_ID,
+    authorizationParams: {
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        redirect_uri: window.location.origin
+    }
+})
+
 createApp(App)
     .use(router)
     .use(pinia)
+    .use(auth0)
     .mount('#app')
