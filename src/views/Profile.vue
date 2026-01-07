@@ -1,7 +1,7 @@
 <script setup>
 import { useAuth0 } from '@auth0/auth0-vue'
 import { onMounted, ref } from 'vue'
-import Navbar from '@/components/navbar.vue'
+//import Navbar from '@/components/navbar.vue'
 import Footer from '@/components/footer.vue'
 
 const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0()
@@ -28,7 +28,13 @@ function getRoleName(constant) {
 onMounted(async () => {
   if (isAuthenticated.value) {
     try {
-      const token = await getAccessTokenSilently()
+      //const token = await getAccessTokenSilently()
+      const token = await getAccessTokenSilently({
+        authorizationParams: {
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE
+        }
+      })
+
       bearerToken.value = token
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/profile`, {
         headers: {
@@ -65,8 +71,8 @@ onMounted(async () => {
       </div>
       <div class="card-body text-center">
         <div v-if="profileData">
-<!--           <img :src="user.picture" :alt="user.name" class="rounded-circle mb-3 border border-3 border-primary"
-            width="150" height="150"> -->
+          <img :src="user.picture" :alt="user.name" class="rounded-circle mb-3 border border-3 border-primary"
+            width="150" height="150">
           <h4 class="card-title">{{ profileData.name }}</h4>
           <p class="card-text text-muted">{{ profileData.email }}</p>
           <p><strong>Rolle:</strong> {{ getRoleName(profileData.role) }}</p>
