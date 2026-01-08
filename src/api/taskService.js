@@ -1,6 +1,6 @@
-import { useAuth0 } from '@auth0/auth0-vue';
+import { useAuth0 } from "@auth0/auth0-vue";
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 /* ================= GET ALL TASKS ================= */
 export async function getAllTasks(title = "", status = "") {
@@ -17,10 +17,7 @@ export async function getAllTasks(title = "", status = "") {
     },
   });
 
-  if (!res.ok) {
-    throw new Error("Fehler beim Laden");
-  }
-
+  if (!res.ok) throw new Error("Fehler beim Laden");
   return await res.json();
 }
 
@@ -35,10 +32,7 @@ export async function getTask(id) {
     },
   });
 
-  if (!res.ok) {
-    throw new Error("Fehler beim Laden");
-  }
-
+  if (!res.ok) throw new Error("Fehler beim Laden");
   return await res.json();
 }
 
@@ -56,10 +50,7 @@ export async function createTask(body) {
     body: JSON.stringify(body),
   });
 
-  if (!res.ok) {
-    throw new Error("Fehler beim Erstellen");
-  }
-
+  if (!res.ok) throw new Error("Fehler beim Erstellen");
   return await res.json();
 }
 
@@ -77,10 +68,7 @@ export async function updateTask(id, body) {
     body: JSON.stringify(body),
   });
 
-  if (!res.ok) {
-    throw new Error("Fehler beim Aktualisieren");
-  }
-
+  if (!res.ok) throw new Error("Fehler beim Aktualisieren");
   return await res.json();
 }
 
@@ -96,9 +84,6 @@ export async function deleteTask(id) {
     },
   });
 
-  if (!res.ok) {
-    throw new Error("Fehler beim Löschen");
-  }
-
+  if (!res.ok) throw new Error("Fehler beim Löschen");
   return true;
 }

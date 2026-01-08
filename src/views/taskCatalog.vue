@@ -7,9 +7,9 @@ import EditTaskForm from '@/components/EditTaskForm.vue';
 import TaskFilter from '@/components/TaskFilter.vue';
 
 import { ref, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAuth0 } from '@auth0/auth0-vue';
 
-/* SERVICE IMPORT */
 import {
   getAllTasks,
   createTask,
@@ -17,25 +17,8 @@ import {
   deleteTask
 } from '@/api/taskService.js';
 
-/* ================= AUTH / ROLE ================= */
-
+const router = useRouter();
 const { isAuthenticated, getAccessTokenSilently } = useAuth0();
-const isAdmin = ref(false);
-
-async function loadUserRole() {
-  const token = await getAccessTokenSilently();
-
-  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  const data = await res.json();
-  isAdmin.value = data.role === 'ADMIN';
-}
-
-/* ================= STATE ================= */
 
 const tasks = ref([]);
 const loadingError = ref(null);
@@ -52,45 +35,92 @@ let createFormBuffer = null;
 const filterTitle = ref("");
 const filterStatus = ref("");
 
-/* ================= LOAD TASKS ================= */
+/* ROLE */
+const isAdmin = ref(false);
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+onMounted(async () => {
+  await loadTasks();
+  if (isAuthenticated.value) {
+    await checkAdminRole();
+  }
+});
+
+watch(isAuthenticated, async (newVal) => {
+  if (newVal) {
+    await checkAdminRole();
+  } else {
+    isAdmin.value = false;
+  }
+});
+
+/* CHECK ADMIN ROLE via /api/profile (wie beim Prof) */
+async function checkAdminRole() {
+  try {
+    const token = await getAccessTokenSilently();
+    const res = await fetch(`${API_BASE}/api/profile`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!res.ok) {
+      isAdmin.value = false;
+      return;
+    }
+
+    const data = await res.json();
+    isAdmin.value = data.role === 'ADMIN';
+  } catch (e) {
+    console.error('Error checking admin role:', e);
+    isAdmin.value = false;
+  }
+}
+
+/* LOAD WITH FILTERS */
 async function loadTasks() {
   loadingError.value = null;
   try {
     tasks.value = await getAllTasks(filterTitle.value, filterStatus.value);
   } catch (e) {
     console.error(e);
-    loadingError.value = 'Fehler beim Laden der Aufgaben.';
+    loadingError.value = 'Fehler beim Laden der Aufgaben. Ist das Backend aktiv?';
   }
 }
 
-/* ================= FILTER EVENT ================= */
-
+/* FILTER EVENT */
 function onFilterChange(filter) {
   filterTitle.value = filter.title;
   filterStatus.value = filter.status;
   loadTasks();
 }
 
-/* ================= MODAL CONTROL ================= */
-
+/* OPEN CREATE (ADMIN ONLY) */
 function openCreateTask() {
+  if (!isAdmin.value) return;
   showCreate.value = true;
 }
 
-function openEditTask(id) {
-  if (!isAdmin.value) return;
-  selectedTaskId.value = id;
-  showEdit.value = true;
+/* CLICK ON CARD:
+   - Admin: opens edit modal
+   - Regular: goes to detail page (read-only)
+*/
+function onTaskClick(taskId) {
+  if (isAdmin.value) {
+    selectedTaskId.value = taskId;
+    showEdit.value = true;
+  } else {
+    router.push({ name: 'task-detail', params: { id: taskId } });
+  }
 }
 
-/* ================= CREATE ================= */
-
+/* CREATE */
 function onCreateFormInput(body) {
   createFormBuffer = body;
 }
 
 async function submitCreateTask() {
+  if (!isAdmin.value) return;
+
   createForm.value?.submitForm();
 
   if (!createFormBuffer) {
@@ -98,41 +128,44 @@ async function submitCreateTask() {
     return;
   }
 
-  await createTask(createFormBuffer);
-  showCreate.value = false;
-  createFormBuffer = null;
-  loadTasks();
+  try {
+    await createTask(createFormBuffer);
+    showCreate.value = false;
+    createFormBuffer = null;
+    await loadTasks();
+  } catch (e) {
+    console.error(e);
+    alert("Erstellen fehlgeschlagen (kein Admin oder Backend-Fehler).");
+  }
 }
 
-/* ================= SAVE / DELETE ================= */
-
+/* SAVE (ADMIN ONLY) */
 async function onSaveTask(body) {
-  await updateTask(selectedTaskId.value, body);
-  showEdit.value = false;
-  loadTasks();
+  if (!isAdmin.value) return;
+
+  try {
+    await updateTask(selectedTaskId.value, body);
+    showEdit.value = false;
+    await loadTasks();
+  } catch (e) {
+    console.error(e);
+    alert("Speichern fehlgeschlagen (kein Admin oder Backend-Fehler).");
+  }
 }
 
+/* DELETE (ADMIN ONLY) */
 async function onDeleteTask() {
-  await deleteTask(selectedTaskId.value);
-  showEdit.value = false;
-  loadTasks();
+  if (!isAdmin.value) return;
+
+  try {
+    await deleteTask(selectedTaskId.value);
+    showEdit.value = false;
+    await loadTasks();
+  } catch (e) {
+    console.error(e);
+    alert("Löschen fehlgeschlagen (kein Admin oder Backend-Fehler).");
+  }
 }
-
-/* ================= LIFECYCLE ================= */
-
-onMounted(async () => {
-  if (isAuthenticated.value) {
-    await loadUserRole();
-    await loadTasks();
-  }
-});
-
-watch(isAuthenticated, async (val) => {
-  if (val) {
-    await loadUserRole();
-    await loadTasks();
-  }
-});
 </script>
 
 <template>
@@ -143,11 +176,16 @@ watch(isAuthenticated, async (val) => {
       <main class="col-lg-9 kanban-area-wrapper p-0">
         <div class="dashboard-wrapper p-4 p-md-5">
 
-          <!-- Header -->
+          <!-- Header wie Dashboard -->
           <div class="d-flex justify-content-between align-items-center mb-4 dashboard-header-container">
             <h2 class="fw-bold mb-0 dashboard-title">Aufgabenübersicht</h2>
 
             <div class="d-flex flex-wrap align-items-center">
+              <Button variant="primary" class="me-2 mb-2 mb-sm-0 btn-custom-blue">
+                Projekt erstellen
+              </Button>
+
+              <!-- NUR ADMIN -->
               <Button
                 v-if="isAdmin"
                 variant="primary"
@@ -156,10 +194,14 @@ watch(isAuthenticated, async (val) => {
               >
                 Neue Aufgabe
               </Button>
+
+              <Button variant="success" class="mb-2 mb-sm-0 btn-custom-green">
+                Rechnung erstellen
+              </Button>
             </div>
           </div>
 
-          <!-- FILTER -->
+          <!-- FILTER-KOMPONENTE -->
           <TaskFilter @filter-change="onFilterChange" />
 
           <!-- Fehler -->
@@ -182,8 +224,7 @@ watch(isAuthenticated, async (val) => {
               >
                 <TaskCard
                   :task="task"
-                  :clickable="isAdmin"
-                  @click="openEditTask(task.id)"
+                  @click="onTaskClick(task.id)"
                 />
               </div>
             </div>
@@ -198,7 +239,7 @@ watch(isAuthenticated, async (val) => {
     </div>
   </div>
 
-  <!-- CREATE MODAL -->
+  <!-- CREATE MODAL (ADMIN ONLY) -->
   <TaskModal
     :show="showCreate"
     title="Neue Aufgabe"
@@ -212,7 +253,7 @@ watch(isAuthenticated, async (val) => {
     </template>
   </TaskModal>
 
-  <!-- EDIT MODAL -->
+  <!-- EDIT MODAL (ADMIN ONLY) -->
   <TaskModal
     :show="showEdit"
     title="Aufgabe bearbeiten"
@@ -227,7 +268,7 @@ watch(isAuthenticated, async (val) => {
     />
 
     <template #footer>
-      <button class="btn btn-danger" @click="onDeleteTask">Löschen</button>
+      <button class="btn btn-danger" @click="onDeleteTask()">Löschen</button>
       <button class="btn btn-success" @click="$refs.editForm.save()">Speichern</button>
     </template>
   </TaskModal>
@@ -270,6 +311,12 @@ watch(isAuthenticated, async (val) => {
 .btn-custom-blue {
   background-color: #007BFF !important;
   border-color: #007BFF !important;
+  color: white !important;
+}
+
+.btn-custom-green {
+  background-color: #19C059 !important;
+  border-color: #19C059 !important;
   color: white !important;
 }
 
