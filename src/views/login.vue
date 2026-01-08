@@ -44,15 +44,13 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-const username = ref('annemarie.schuler')
-const password = ref('passwort')
-
 const router = useRouter()
 
 function login() {
   // später kommt hier echte Login-Logik  
-  router.push('/tasks')
+ router.push('/tasks')
 }
+
 </script>
 
 <style scoped>
