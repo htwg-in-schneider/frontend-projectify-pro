@@ -6,7 +6,8 @@ import CreateTaskForm from '@/components/CreateTaskForm.vue';
 import EditTaskForm from '@/components/EditTaskForm.vue';
 import TaskFilter from '@/components/TaskFilter.vue';
 
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import { useAuth0 } from '@auth0/auth0-vue';
 
 /* SERVICE IMPORT */
 import {
@@ -15,6 +16,26 @@ import {
   updateTask,
   deleteTask
 } from '@/api/taskService.js';
+
+/* ================= AUTH / ROLE ================= */
+
+const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+const isAdmin = ref(false);
+
+async function loadUserRole() {
+  const token = await getAccessTokenSilently();
+
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await res.json();
+  isAdmin.value = data.role === 'ADMIN';
+}
+
+/* ================= STATE ================= */
 
 const tasks = ref([]);
 const loadingError = ref(null);
@@ -25,51 +46,51 @@ const selectedTaskId = ref(null);
 
 const editForm = ref(null);
 const createForm = ref(null);
-
 let createFormBuffer = null;
 
 /* FILTER STATES */
 const filterTitle = ref("");
 const filterStatus = ref("");
 
-onMounted(loadTasks);
+/* ================= LOAD TASKS ================= */
 
-/* LOAD WITH FILTERS */
 async function loadTasks() {
   loadingError.value = null;
-
   try {
     tasks.value = await getAllTasks(filterTitle.value, filterStatus.value);
   } catch (e) {
     console.error(e);
-    loadingError.value = 'Fehler beim Laden der Aufgaben. Ist das Backend aktiv?';
+    loadingError.value = 'Fehler beim Laden der Aufgaben.';
   }
 }
 
-/* FILTER EVENT */
+/* ================= FILTER EVENT ================= */
+
 function onFilterChange(filter) {
   filterTitle.value = filter.title;
   filterStatus.value = filter.status;
   loadTasks();
 }
 
-/* POPUP ÖFFNEN */
+/* ================= MODAL CONTROL ================= */
+
 function openCreateTask() {
   showCreate.value = true;
 }
 
 function openEditTask(id) {
+  if (!isAdmin.value) return;
   selectedTaskId.value = id;
   showEdit.value = true;
 }
 
-/* CREATE */
+/* ================= CREATE ================= */
+
 function onCreateFormInput(body) {
   createFormBuffer = body;
 }
 
 async function submitCreateTask() {
-
   createForm.value?.submitForm();
 
   if (!createFormBuffer) {
@@ -83,25 +104,38 @@ async function submitCreateTask() {
   loadTasks();
 }
 
-/* SAVE */
+/* ================= SAVE / DELETE ================= */
+
 async function onSaveTask(body) {
   await updateTask(selectedTaskId.value, body);
   showEdit.value = false;
   loadTasks();
 }
 
-/* DELETE */
 async function onDeleteTask() {
   await deleteTask(selectedTaskId.value);
   showEdit.value = false;
   loadTasks();
 }
+
+/* ================= LIFECYCLE ================= */
+
+onMounted(async () => {
+  if (isAuthenticated.value) {
+    await loadUserRole();
+    await loadTasks();
+  }
+});
+
+watch(isAuthenticated, async (val) => {
+  if (val) {
+    await loadUserRole();
+    await loadTasks();
+  }
+});
 </script>
 
-
-
 <template>
-
   <div class="dashboard-page container">
     <div class="row">
 
@@ -109,30 +143,23 @@ async function onDeleteTask() {
       <main class="col-lg-9 kanban-area-wrapper p-0">
         <div class="dashboard-wrapper p-4 p-md-5">
 
-          <!-- Header wie Dashboard -->
+          <!-- Header -->
           <div class="d-flex justify-content-between align-items-center mb-4 dashboard-header-container">
             <h2 class="fw-bold mb-0 dashboard-title">Aufgabenübersicht</h2>
 
             <div class="d-flex flex-wrap align-items-center">
-              <Button variant="primary" class="me-2 mb-2 mb-sm-0 btn-custom-blue">
-                Projekt erstellen
-              </Button>
-
-              <Button 
-                variant="primary" 
+              <Button
+                v-if="isAdmin"
+                variant="primary"
                 class="me-2 mb-2 mb-sm-0 btn-custom-blue"
                 @click="openCreateTask"
               >
                 Neue Aufgabe
               </Button>
-
-              <Button variant="success" class="mb-2 mb-sm-0 btn-custom-green">
-                Rechnung erstellen
-              </Button>
             </div>
           </div>
 
-          <!-- FILTER-KOMPONENTE -->
+          <!-- FILTER -->
           <TaskFilter @filter-change="onFilterChange" />
 
           <!-- Fehler -->
@@ -148,13 +175,14 @@ async function onDeleteTask() {
           <!-- Aufgabenliste -->
           <div class="kanban-area">
             <div class="row g-4">
-              <div 
-                v-for="task in tasks" 
-                :key="task.id" 
+              <div
+                v-for="task in tasks"
+                :key="task.id"
                 class="col-lg-4 col-md-6"
               >
-                <TaskCard 
+                <TaskCard
                   :task="task"
+                  :clickable="isAdmin"
                   @click="openEditTask(task.id)"
                 />
               </div>
@@ -170,23 +198,19 @@ async function onDeleteTask() {
     </div>
   </div>
 
-
   <!-- CREATE MODAL -->
-  <TaskModal 
+  <TaskModal
     :show="showCreate"
     title="Neue Aufgabe"
     @close="showCreate = false"
   >
-
     <CreateTaskForm ref="createForm" @submit="onCreateFormInput" />
 
     <template #footer>
       <button class="btn btn-secondary" @click="showCreate = false">Abbrechen</button>
       <button class="btn btn-success" @click="submitCreateTask">Erstellen</button>
     </template>
-
   </TaskModal>
-
 
   <!-- EDIT MODAL -->
   <TaskModal
@@ -194,8 +218,7 @@ async function onDeleteTask() {
     title="Aufgabe bearbeiten"
     @close="showEdit = false"
   >
-
-    <EditTaskForm 
+    <EditTaskForm
       ref="editForm"
       :taskId="selectedTaskId"
       :backend="true"
@@ -204,16 +227,11 @@ async function onDeleteTask() {
     />
 
     <template #footer>
-      <button class="btn btn-danger" @click="onDeleteTask()">Löschen</button>
+      <button class="btn btn-danger" @click="onDeleteTask">Löschen</button>
       <button class="btn btn-success" @click="$refs.editForm.save()">Speichern</button>
     </template>
-
   </TaskModal>
-
 </template>
-
-
-
 
 <style scoped>
 .dashboard-page.container {
@@ -252,12 +270,6 @@ async function onDeleteTask() {
 .btn-custom-blue {
   background-color: #007BFF !important;
   border-color: #007BFF !important;
-  color: white !important;
-}
-
-.btn-custom-green {
-  background-color: #19C059 !important;
-  border-color: #19C059 !important;
   color: white !important;
 }
 
