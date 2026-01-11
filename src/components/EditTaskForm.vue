@@ -143,7 +143,7 @@ defineExpose({ save });
           <select class="form-select" v-model="form.status">
             <option>Erledigt</option>
             <option>In Bearbeitung</option>
-            <option>Review</option>
+            <option>Offen</option>
           </select>
         </div>
       </div>

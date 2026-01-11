@@ -37,7 +37,7 @@ defineExpose({ submitForm });
     <select class="form-control" v-model="status">
       <option>Erledigt</option>
       <option>In Bearbeitung</option>
-      <option>Review</option>
+      <option>Offen</option>
     </select>
 
     <label class="form-label mt-3">Startdatum</label>

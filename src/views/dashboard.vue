@@ -89,17 +89,17 @@
               </div>
 
               <div class="col-md-4">
-                <h4 class="mb-3 kanban-header">Review</h4>
+                <h4 class="mb-3 kanban-header">Offen</h4>
                 <div class="kanban-column">
                   <div 
-                    v-for="proj in filteredProjects?.Review" 
+                    v-for="proj in filteredProjects?.Offen" 
                     :key="proj.id" 
                     class="card mb-3 project-card border-0 shadow-sm"
                     @click="selectProject(proj)"
                   >
                     <div class="card-body border-start border-4 border-warning">
                       <h6 class="card-title fw-bold mb-1">{{ proj.name }}</h6>
-                      <small class="text-muted">Review ausstehend</small>
+                      <small class="text-muted">Offen</small>
                     </div>
                   </div>
                 </div>
@@ -124,9 +124,9 @@
               </div>
 
               <div class="col-md-4">
-                <h4 class="mb-3 kanban-header">Review</h4>
+                <h4 class="mb-3 kanban-header">Offen</h4>
                 <div class="kanban-column">
-                  <TaskCard v-for="task in filteredTasks?.Review" :key="task.id" :task="task" @click="openEditTask(task.id)" />
+                  <TaskCard v-for="task in filteredTasks?.Offen" :key="task.id" :task="task" @click="openEditTask(task.id)" />
                 </div>
               </div>
 
@@ -307,7 +307,7 @@ async function checkAdminRole() {
 
 // Projekte filtern nach Status
 const filteredProjects = computed(() => {
-  const grouped = { Erledigt: [], "In Bearbeitung": [], Review: [] };
+  const grouped = { Erledigt: [], "In Bearbeitung": [], Offen: [] };
   
   for (const p of projects.value) {
     // Fallback falls Status im Backend null ist
@@ -325,7 +325,7 @@ const filteredProjects = computed(() => {
 
 // Tasks filtern nach Status
 const filteredTasks = computed(() => {
-  const grouped = { Erledigt: [], "In Bearbeitung": [], Review: [] };
+  const grouped = { Erledigt: [], "In Bearbeitung": [], Offen: [] };
   for (const t of tasks.value) {
     if (grouped[t.status]) grouped[t.status].push(t);
   }
