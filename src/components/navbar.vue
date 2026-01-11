@@ -32,7 +32,6 @@ const logoutUser = () => {
     <nav class="navbar navbar-expand-lg navbar-light bg-white">
       <div class="container">
 
-        <!-- Logo -->
         <router-link class="navbar-brand fw-bold text-accent" to="/">
           <img
             src="../assets/icons/logoImage.png"
@@ -42,7 +41,6 @@ const logoutUser = () => {
           Projectify Pro
         </router-link>
 
-        <!-- Mobile Toggle -->
         <button
           class="navbar-toggler border-0"
           type="button"
@@ -52,11 +50,9 @@ const logoutUser = () => {
           <img src="../assets/icons/menue.png" alt="Menü" style="height: 24px;" />
         </button>
 
-        <!-- Navbar Content -->
         <div class="collapse navbar-collapse" id="mainNavbar">
           <ul class="navbar-nav ms-auto align-items-center">
 
-            <!-- LOGIN (nur wenn NICHT eingeloggt) -->
             <li
               class="nav-item ms-lg-2"
               v-if="!isAuthenticated && !shouldHideLoginButton && !isLoading"
@@ -66,7 +62,6 @@ const logoutUser = () => {
               </Button>
             </li>
 
-            <!-- LOGOUT (IMMER sichtbar, wenn eingeloggt) -->
             <li
               class="nav-item ms-lg-2"
               v-if="isAuthenticated && !isLoading"
@@ -76,7 +71,6 @@ const logoutUser = () => {
               </Button>
             </li>
 
-            <!-- Menü-Icon rechts -->
             <li class="nav-item dropdown ms-lg-2 d-none d-lg-block">
               <Button 
                 variant="secondary"
@@ -88,6 +82,12 @@ const logoutUser = () => {
                 <img src="../assets/icons/menue.png" style="height: 24px;" />
               </Button>
               <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                <li>
+                  <a class="dropdown-item" href="#" @click.prevent="router.push('/')">
+                    Startseite
+                  </a>
+                </li>
+                
                 <li>
                   <a class="dropdown-item" href="#" @click.prevent="router.push('/dashboard')">
                     Dashboard

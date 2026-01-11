@@ -11,6 +11,9 @@
                 <button v-if="selectedProject" class="btn btn-sm btn-outline-secondary mb-2" @click="closeProject">
                   &larr; Zurück zur Übersicht
                 </button>
+                <h2 class="fw-bold mb-0 dashboard-title">
+                  {{ selectedProject ? 'FLOW 1' : 'Projekt Übersicht' }}
+                </h2>
               </div>
 
               <div class="d-flex flex-wrap align-items-center">
@@ -38,16 +41,22 @@
                   class="btn-custom-green"
                   @click="calculateInvoice"
                 >
-                  Rechnung
+                  Rechnung erstellen
                 </Button>
               </div>
             </div>
 
-            <div v-if="loadingError" class="alert alert-danger">
+            <div v-if="loadingError" class="alert alert-danger py-2">
               {{ loadingError }}
             </div>
+            
+            <div v-if="projects.length === 0 && !loadingError && !selectedProject" class="alert alert-info py-4 text-center">
+              <h4>Keine Projekte vorhanden</h4>
+              <p>Aktuell sind keine Projekte im System gespeichert.</p>
+              <p v-if="isAdmin">Klicken Sie auf "Neues Projekt", um zu beginnen.</p>
+            </div>
 
-            <div v-if="!selectedProject" class="row g-4 kanban-container">
+            <div v-if="!selectedProject && projects.length > 0" class="row g-4 kanban-container">
               
                <div class="col-md-4">
                 <h4 class="mb-3 kanban-header">Erledigt</h4>
@@ -59,10 +68,13 @@
                     @click="selectProject(proj)"
                   >
                     <div class="card-body border-start border-4 border-success">
-                      <h6 class="card-title fw-bold mb-1">{{ proj.name }}</h6>
-                      <div class="text-muted small">
-                        <span v-if="proj.startDate">{{ proj.startDate }}</span>
-                        <span v-if="proj.endDate"> - {{ proj.endDate }}</span>
+                      <h6 class="card-title fw-bold mb-2">{{ proj.name }}</h6>
+                      <div class="small text-muted mb-1" v-if="proj.startDate || proj.endDate">
+                        <i class="bi bi-calendar-event me-1"></i>
+                        {{ proj.startDate || '?' }} - {{ proj.endDate || '?' }}
+                      </div>
+                      <div class="small text-muted" v-if="proj.duration">
+                        <i class="bi bi-clock me-1"></i> {{ proj.duration }} Std.
                       </div>
                     </div>
                   </div>
@@ -79,9 +91,13 @@
                     @click="selectProject(proj)"
                   >
                     <div class="card-body border-start border-4 border-primary">
-                      <h6 class="card-title fw-bold mb-1">{{ proj.name }}</h6>
-                      <div class="text-muted small">
-                        <span v-if="proj.startDate">Start: {{ proj.startDate }}</span>
+                      <h6 class="card-title fw-bold mb-2">{{ proj.name }}</h6>
+                      <div class="small text-muted mb-1" v-if="proj.startDate || proj.endDate">
+                        <i class="bi bi-calendar-event me-1"></i>
+                        {{ proj.startDate || '?' }} - {{ proj.endDate || '?' }}
+                      </div>
+                      <div class="small text-muted" v-if="proj.duration">
+                        <i class="bi bi-clock me-1"></i> {{ proj.duration }} Std.
                       </div>
                     </div>
                   </div>
@@ -98,8 +114,14 @@
                     @click="selectProject(proj)"
                   >
                     <div class="card-body border-start border-4 border-warning">
-                      <h6 class="card-title fw-bold mb-1">{{ proj.name }}</h6>
-                      <small class="text-muted">Offen</small>
+                      <h6 class="card-title fw-bold mb-2">{{ proj.name }}</h6>
+                      <div class="small text-muted mb-1" v-if="proj.startDate || proj.endDate">
+                        <i class="bi bi-calendar-event me-1"></i>
+                        {{ proj.startDate || '?' }} - {{ proj.endDate || '?' }}
+                      </div>
+                      <div class="small text-muted" v-if="proj.duration">
+                        <i class="bi bi-clock me-1"></i> {{ proj.duration }} Std.
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -107,8 +129,7 @@
 
             </div>
 
-            <div v-else class="row g-4 kanban-container">
-
+            <div v-else-if="selectedProject" class="row g-4 kanban-container">
               <div class="col-md-4">
                 <h4 class="mb-3 kanban-header">Erledigt</h4>
                 <div class="kanban-column">
@@ -129,7 +150,6 @@
                   <TaskCard v-for="task in filteredTasks?.Offen" :key="task.id" :task="task" @click="openEditTask(task.id)" />
                 </div>
               </div>
-
             </div>
 
           </div>
@@ -149,7 +169,10 @@
         <div class="sidebar-block">
           <div v-if="selectedProject">
             <h6 class="text-primary fw-bold">Aktuelles Projekt:</h6>
-            <p>{{ selectedProject.name }}</p>
+            <p class="fs-5 fw-bold mb-1">{{ selectedProject.name }}</p>
+            <p class="small text-muted">
+              Klicken Sie auf "Zurück zur Übersicht", um das Projekt zu wechseln.
+            </p>
           </div>
           <div v-else>
              <p class="text-muted small">
@@ -187,15 +210,24 @@
 
     <TaskModal :show="showInvoice" title="Rechnung" @close="showInvoice = false">
       <div v-if="invoiceData.items.length > 0">
+        <p class="text-muted mb-3">für alle Aufgaben die Bereits erledigt sind (Stundensatz: 100€)</p>
         <ul class="list-group mb-4">
-          <li v-for="item in invoiceData.items" :key="item.id" class="list-group-item d-flex justify-content-between">
-            <div><strong>{{ item.title }}</strong> <br><small>{{ item.duration }} Std.</small></div>
-            <span>{{ item.cost }} €</span>
+          <li v-for="item in invoiceData.items" :key="item.id" class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-bold">{{ item.title }}</div>
+              <small class="text-muted">Dauer: {{ item.duration }} Std.</small>
+            </div>
+            <span class="badge bg-primary rounded-pill">{{ item.cost }} €</span>
           </li>
         </ul>
-        <h3 class="text-end text-success fw-bold">{{ invoiceData.total }} €</h3>
+        <div class="d-flex justify-content-end align-items-center border-top pt-3">
+          <h4 class="mb-0 me-3">Gesamtbetrag:</h4>
+          <h3 class="fw-bold text-success mb-0">{{ invoiceData.total }} €</h3>
+        </div>
       </div>
-      <div v-else class="alert alert-info">Keine Daten.</div>
+      <div v-else class="alert alert-info">
+        Keine erledigten Aufgaben für die Rechnungsstellung gefunden.
+      </div>
       <template #footer>
         <button class="btn btn-secondary" @click="showInvoice = false">Schließen</button>
       </template>
@@ -209,7 +241,6 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth0 } from "@auth0/auth0-vue";
 
-// Components
 import TaskCard from "@/components/taskCard.vue";
 import Button from "@/components/button.vue";
 import TaskModal from "@/components/TaskModal.vue";
@@ -217,7 +248,8 @@ import CreateTaskForm from "@/components/CreateTaskForm.vue";
 import EditTaskForm from "@/components/EditTaskForm.vue";
 
 // Data & API
-import { staff } from "@/data.js";
+// Nur noch staff laden, KEINE Projekte aus data.js
+import { staff } from "@/data.js"; 
 import { getAllTasks, createTask, updateTask, deleteTask } from "@/api/taskService.js";
 import { getAllProjects, createProject } from "@/api/projectService.js";
 
@@ -227,13 +259,12 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 // STATE
 const tasks = ref([]);
-const projects = ref([]);
-const selectedProject = ref(null); // NULL = Projektübersicht, OBJEKT = Task Board
+const projects = ref([]); // Startet leer
+const selectedProject = ref(null);
 
 const loadingError = ref(null);
 const isAdmin = ref(false);
 
-// Modals State
 const showCreate = ref(false);
 const showEdit = ref(false);
 const showCreateProject = ref(false);
@@ -241,16 +272,14 @@ const showInvoice = ref(false);
 const invoiceData = ref({ total: 0, items: [] });
 const selectedTaskId = ref(null);
 
-// Forms
 const createForm = ref(null);
 const createProjectForm = ref(null);
 const editForm = ref(null);
 let createFormBuffer = null;
 let createProjectFormBuffer = null;
 
-// --- INITIAL LOAD ---
 onMounted(async () => {
-  await loadProjects(); // Zuerst nur Projekte laden
+  await loadProjects(); 
   if (isAuthenticated.value) await checkAdminRole();
 });
 
@@ -261,18 +290,25 @@ watch(isAuthenticated, async (v) => {
 // --- API ACTIONS ---
 
 async function loadProjects() {
+  loadingError.value = null;
   try {
     const token = await getAccessTokenSilently();
-    projects.value = await getAllProjects(token);
+    // ECHTER API CALL
+    const backendProjects = await getAllProjects(token);
+    projects.value = backendProjects || [];
   } catch (e) {
-    console.error("Fehler Projekte:", e);
-    loadingError.value = "Konnte Projekte nicht laden.";
+    console.error("Fehler beim Laden der Projekte:", e);
+    loadingError.value = "Konnte keine Verbindung zum Server herstellen.";
+    projects.value = [];
   }
 }
 
 async function selectProject(project) {
   selectedProject.value = project;
-  await loadTasksForProject(project.id);
+  // Tasks nur laden, wenn eine echte ID vorhanden ist
+  if (project.id) {
+    await loadTasksForProject(project.id);
+  }
 }
 
 function closeProject() {
@@ -284,7 +320,6 @@ async function loadTasksForProject(projectId) {
   loadingError.value = null;
   try {
     const token = await getAccessTokenSilently();
-    // Ruft Tasks gefiltert nach Projekt ID ab
     tasks.value = await getAllTasks(token, projectId);
   } catch (e) {
     console.error(e);
@@ -305,29 +340,28 @@ async function checkAdminRole() {
 
 // --- COMPUTED ---
 
-// Projekte filtern nach Status
 const filteredProjects = computed(() => {
   const grouped = { Erledigt: [], "In Bearbeitung": [], Offen: [] };
   
   for (const p of projects.value) {
-    // Fallback falls Status im Backend null ist
-    const status = p.status || "In Bearbeitung"; 
-    
+    let status = p.status || "In Bearbeitung";
+    if (status === 'Review') status = 'Offen';
+
     if (grouped[status]) {
       grouped[status].push(p);
     } else {
-      // Unbekannte Status in "In Bearbeitung" sammeln
       grouped["In Bearbeitung"].push(p);
     }
   }
   return grouped;
 });
 
-// Tasks filtern nach Status
 const filteredTasks = computed(() => {
   const grouped = { Erledigt: [], "In Bearbeitung": [], Offen: [] };
   for (const t of tasks.value) {
-    if (grouped[t.status]) grouped[t.status].push(t);
+    let status = t.status;
+    if (status === 'Review') status = 'Offen'; 
+    if (grouped[status]) grouped[status].push(t);
   }
   return grouped;
 });
@@ -348,7 +382,6 @@ function calculateInvoice() {
   showInvoice.value = true;
 }
 
-// CREATE PROJECT
 function openCreateProject() {
   createProjectFormBuffer = null;
   showCreateProject.value = true;
@@ -361,20 +394,19 @@ async function submitCreateProject() {
 
   try {
     const token = await getAccessTokenSilently();
-    // Hier können später auch startDate/endDate aus dem Formular kommen
     await createProject(token, { 
       name: createProjectFormBuffer.title, 
-      status: "In Bearbeitung", // Standard-Status für neue Projekte
+      status: createProjectFormBuffer.status || "In Bearbeitung",
       startDate: createProjectFormBuffer.startDate || "",
       endDate: createProjectFormBuffer.endDate || "",
       duration: createProjectFormBuffer.duration || ""
     });
+    // Nach Erstellen neu laden, damit das neue Projekt vom Backend kommt
     await loadProjects();
     showCreateProject.value = false;
   } catch (e) { alert("Fehler Projekt erstellen"); }
 }
 
-// CREATE TASK
 function openCreateTask() {
   if (!isAdmin.value) return;
   showCreate.value = true;
@@ -388,16 +420,13 @@ async function submitCreateTask() {
 
   try {
     const token = await getAccessTokenSilently();
-    // WICHTIG: Projekt ID hinzufügen
     const payload = { ...createFormBuffer, projectId: selectedProject.value.id };
-    
     await createTask(token, payload);
     showCreate.value = false;
     await loadTasksForProject(selectedProject.value.id);
   } catch (e) { alert("Fehler Task erstellen"); }
 }
 
-// EDIT / DELETE TASK
 function openEditTask(id) {
   if (!isAdmin.value) return; 
   selectedTaskId.value = id;
@@ -447,7 +476,6 @@ async function deleteTaskById() {
 .btn-custom-blue { background-color: #007BFF !important; color: white !important; }
 .btn-custom-green { background-color: #19C059 !important; color: white !important; }
 
-/* Styles für Projekt-Karten */
 .project-card {
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
