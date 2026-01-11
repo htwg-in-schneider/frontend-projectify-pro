@@ -12,7 +12,11 @@
               <h2 class="fw-bold mb-0 dashboard-title">Projekt Dashboard</h2>
 
               <div class="d-flex flex-wrap align-items-center">
-                <Button variant="primary" class="me-2 mb-2 mb-sm-0 btn-custom-blue">
+                <Button 
+                  variant="primary" 
+                  class="me-2 mb-2 mb-sm-0 btn-custom-blue"
+                  @click="openCreateProject"
+                >
                   Projekt erstellen
                 </Button>
 
@@ -23,7 +27,7 @@
                   class="me-2 mb-2 mb-sm-0 btn-custom-blue"
                   @click="openCreateTask"
                 >
-                  Neue Aufgabe
+                  Aufgabe erstellen
                 </Button>
 
                 <Button variant="success" class="mb-2 mb-sm-0 btn-custom-green">
@@ -139,6 +143,17 @@
       </template>
     </TaskModal>
 
+    <!-- POPUP: Neues Projekt (ADMIN) -->
+
+    <TaskModal :show="showCreateProject" title="Neues Projekt" @close="showCreateProject = false">
+      <CreateTaskForm ref="createProjectForm" @submit="onProjectFormInput" />
+
+      <template #footer>
+        <button class="btn btn-secondary" @click="showCreateProject = false">Abbrechen</button>
+        <button class="btn btn-success" @click="submitCreateProject">Erstellen</button>
+      </template>
+    </TaskModal>
+
   </div>
 </template>
 
@@ -153,7 +168,7 @@ import TaskModal from "@/components/TaskModal.vue";
 import CreateTaskForm from "@/components/CreateTaskForm.vue";
 import EditTaskForm from "@/components/EditTaskForm.vue";
 
-import { staff, projects } from "@/data.js";
+import { staff, projects as initialProjects } from "@/data.js";
 
 import {
   getAllTasks,
@@ -168,17 +183,24 @@ const { isAuthenticated, getAccessTokenSilently } = useAuth0();
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const tasks = ref([]);
+// Mache projects reaktiv
+const projects = ref(initialProjects || []);
 const loadingError = ref(null);
 
 const showCreate = ref(false);
 const showEdit = ref(false);
+// State für Projekt-Erstellung
+const showCreateProject = ref(false);
+
 const selectedTaskId = ref(null);
 
 const isAdmin = ref(false);
 
 const createForm = ref(null);
+const createProjectForm = ref(null); // Ref für das Projekt-Formular
 const editForm = ref(null);
 let createFormBuffer = null;
+let createProjectFormBuffer = null; // Buffer für Projektdaten
 
 async function loadTasks() {
   loadingError.value = null;
@@ -242,6 +264,36 @@ function openEditTask(id) {
   }
   selectedTaskId.value = id;
   showEdit.value = true;
+}
+
+// Logik für Projekt erstellen
+function openCreateProject() {
+  createProjectFormBuffer = null;
+  showCreateProject.value = true;
+}
+
+// Callback wenn das Projekt-Formular abgesendet wird (via emit)
+function onProjectFormInput(body) {
+  createProjectFormBuffer = body;
+}
+
+function submitCreateProject() {
+  // Löst das 'submit' Event im Child-Component aus, welches onProjectFormInput aufruft
+  createProjectForm.value?.submitForm();
+
+  if (!createProjectFormBuffer || !createProjectFormBuffer.title) {
+    alert("Bitte mindestens einen Titel für das Projekt eingeben.");
+    return;
+  }
+  
+  // Füge das neue Projekt der Liste hinzu (nutzt 'title' aus dem Formular als Projektname)
+  projects.value.push({ 
+    name: createProjectFormBuffer.title, 
+    active: false 
+  });
+  
+  showCreateProject.value = false;
+  createProjectFormBuffer = null;
 }
 
 function onCreateFormInput(body) {
