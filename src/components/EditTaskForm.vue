@@ -1,14 +1,17 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { defineProps, defineEmits } from 'vue';
+import { useAuth0 } from '@auth0/auth0-vue'; // Auth Hook importieren
 import TaskComments from '@/components/TaskComments.vue';
+import { getTaskById } from '@/api/taskService.js'; // Service importieren
 
 const props = defineProps({
-  taskId: Number,
+  taskId: [Number, String],
   backend: Boolean
 });
 
 const emit = defineEmits(['save', 'delete']);
+const { getAccessTokenSilently } = useAuth0(); // Token abrufen
 
 const title = ref('');
 const user = ref('');
@@ -16,14 +19,27 @@ const startDate = ref('');
 const endDate = ref('');
 const duration = ref('');
 const status = ref('');
+const loading = ref(false);
 
-async function loadTaskBackend() {
-  const BASE_URL = import.meta.env.VITE_API_URL;
-  const res = await fetch(`${BASE_URL}/api/task/${props.taskId}`);
-  const data = await res.json();
-  mapTask(data);
+// Lädt die Daten, sobald sich die TaskID ändert oder die Komponente montiert wird
+async function loadTaskData() {
+  if (!props.taskId) return;
+
+  if (props.backend) {
+    loading.value = true;
+    try {
+      const token = await getAccessTokenSilently();
+      const data = await getTaskById(token, props.taskId);
+      mapTask(data);
+    } catch (e) {
+      console.error("Fehler beim Laden der Aufgabe:", e);
+    } finally {
+      loading.value = false;
+    }
+  } else {
+    loadTaskDummy();
+  }
 }
-
 
 function loadTaskDummy() {
   const dummy = JSON.parse(localStorage.getItem('dummyTasks')) || [];
@@ -32,29 +48,32 @@ function loadTaskDummy() {
 }
 
 function mapTask(data) {
-  title.value = data.title;
-  user.value = data.user;
-  startDate.value = data.startDate;
-  endDate.value = data.endDate;
-  duration.value = data.duration;
-  status.value = data.status;
+  title.value = data.title || '';
+  user.value = data.user || '';
+  // Datum formatieren (YYYY-MM-DD), falls API ISO-String liefert
+  startDate.value = data.startDate ? data.startDate.split('T')[0] : '';
+  endDate.value = data.endDate ? data.endDate.split('T')[0] : '';
+  duration.value = data.duration || '';
+  status.value = data.status || 'In Bearbeitung';
 }
 
-onMounted(() => {
-  if (props.backend) loadTaskBackend();
-  else loadTaskDummy();
-});
+// Watcher: Reagiert auf Änderung der taskId 
+watch(() => props.taskId, async (newId) => {
+  if (newId) {
+    // Leert Datenfelder
+    title.value = '';
+    user.value = '';
+    await loadTaskData();
+  }
+}, { immediate: true });
 
 function save() {
   if (
     !title.value ||
-    !user.value ||
-    !startDate.value ||
-    !endDate.value ||
     !duration.value ||
     !status.value
   ) {
-    alert("Bitte alle Felder ausfüllen!");
+    alert("Bitte die Pflichtfelder (Titel, Dauer, Status) ausfüllen!");
     return;
   }
 
@@ -76,7 +95,12 @@ defineExpose({ save });
 </script>
 
 <template>
-  <div>
+  <div v-if="loading" class="text-center py-4">
+    <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+    <span class="ms-2">Lade Daten...</span>
+  </div>
+  
+  <div v-else>
     <label class="form-label">Titel</label>
     <input class="form-control" v-model="title" />
 
@@ -85,21 +109,22 @@ defineExpose({ save });
 
     <label class="form-label mt-3">Status</label>
     <select class="form-control" v-model="status">
-      <option>Erledigt</option>
-      <option>In Bearbeitung</option>
-      <option>Review</option>
+      <option value="Erledigt">Erledigt</option>
+      <option value="In Bearbeitung">In Bearbeitung</option>
+      <option value="Review">Review</option>
     </select>
 
     <label class="form-label mt-3">Startdatum</label>
     <input type="date" class="form-control" v-model="startDate" />
 
-    <label class="form-label mt-3">Dauer</label>
-    <input class="form-control" v-model="duration" />
+    <label class="form-label mt-3">Dauer in Stunden</label>
+    <input type="number" class="form-control" v-model="duration" />
 
     <label class="form-label mt-3">Enddatum</label>
     <input type="date" class="form-control" v-model="endDate" />
 
-    
-    <TaskComments :taskId="props.taskId" />
+    <div class="mt-4">
+      <TaskComments :taskId="props.taskId" />
+    </div>
   </div>
 </template>

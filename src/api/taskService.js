@@ -17,7 +17,20 @@ export async function getAllTasks(token, title = "", status = "") {
   return await res.json();
 }
 
-// CREATE TASK (bleibt wie bei dir – mit Authorization)
+// ✅ NEU: Einzelne Aufgabe laden
+export async function getTaskById(token, id) {
+  const res = await fetch(`${BASE_URL}/api/task/${id}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) throw new Error("Fehler beim Laden der Aufgabe");
+  return await res.json();
+}
+
+// CREATE TASK
 export async function createTask(token, body) {
   const res = await fetch(`${BASE_URL}/api/task`, {
     method: "POST",

@@ -43,7 +43,7 @@ defineExpose({ submitForm });
     <label class="form-label mt-3">Startdatum</label>
     <input type="date" class="form-control" v-model="startDate" />
 
-    <label class="form-label mt-3">Dauer</label>
+    <label class="form-label mt-3">Dauer in Stunden</label>
     <input class="form-control" v-model="duration" />
 
     <label class="form-label mt-3">Enddatum</label>
