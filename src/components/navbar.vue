@@ -77,10 +77,23 @@ const logoutUser = () => {
             </li>
 
             <!-- Menü-Icon rechts -->
-            <li class="nav-item ms-lg-2 d-none d-lg-block">
-              <Button href="#" variant="secondary">
+            <li class="nav-item dropdown ms-lg-2 d-none d-lg-block">
+              <Button 
+                variant="secondary"
+                class="dropdown-toggle"
+                id="navbarDropdown"
+                data-bs-toggle="dropdown" 
+                aria-expanded="false"
+              >
                 <img src="../assets/icons/menue.png" style="height: 24px;" />
               </Button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                <li>
+                  <a class="dropdown-item" href="#" @click.prevent="router.push('/dashboard')">
+                    Dashboard
+                  </a>
+                </li>
+              </ul>
             </li>
 
           </ul>
