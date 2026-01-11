@@ -90,7 +90,7 @@ async function fetchTask() {
         <p><strong>Zugewiesen an:</strong> {{ task.user }}</p>
         <p><strong>Start:</strong> {{ task.startDate }}</p>
         <p><strong>Ende:</strong> {{ task.endDate }}</p>
-        <p><strong>Dauer:</strong> {{ task.duration }} Tage</p>
+        <p><strong>Dauer in Stunden:</strong> {{ task.duration }} Stunden</p>
 
         <div class="mt-4">
           <NavButton variant="secondary" class="me-2" to="/tasks">Zurück</NavButton>

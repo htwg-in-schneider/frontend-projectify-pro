@@ -55,7 +55,7 @@ watch(isAuthenticated, async (newVal) => {
   }
 });
 
-/* CHECK ADMIN ROLE via /api/profile (wie beim Prof) */
+/* CHECK ADMIN ROLE via /api/profile*/
 async function checkAdminRole() {
   try {
     const token = await getAccessTokenSilently();

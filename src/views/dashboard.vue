@@ -20,7 +20,7 @@
                   Projekt erstellen
                 </Button>
 
-                <!-- ✅ HIER kommt der isAdmin Button rein -->
+                <!-- HIER kommt der isAdmin Button rein -->
                 <Button
                   v-if="isAdmin"
                   variant="primary"
@@ -30,9 +30,14 @@
                   Aufgabe erstellen
                 </Button>
 
-                <Button variant="success" class="mb-2 mb-sm-0 btn-custom-green">
+              <Button 
+                  variant="success" 
+                  class="mb-2 mb-sm-0 btn-custom-green"
+                  @click="calculateInvoice"
+                >
                   Rechnung erstellen
-                </Button>
+              </Button>
+
               </div>
             </div>
 
@@ -115,7 +120,7 @@
 
     </div>
 
-    <!-- ✅ HIER unten kommen die TaskModals rein -->
+                         <!-- HIER unten kommen die TaskModals rein -->
 
     <!-- POPUP: Neue Aufgabe (ADMIN) -->
     <TaskModal :show="showCreate" title="Neue Aufgabe" @close="showCreate = false">
@@ -154,6 +159,32 @@
       </template>
     </TaskModal>
 
+    <TaskModal :show="showInvoice" title="Rechnung" @close="showInvoice = false">
+      <div v-if="invoiceData.items.length > 0">
+        <p class="text-muted mb-3">für alle Aufgaben die Bereits erledigt sind (Stundensatz: 100€)</p>
+        <ul class="list-group mb-4">
+          <li v-for="item in invoiceData.items" :key="item.id" class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-bold">{{ item.title }}</div>
+              <small class="text-muted">Dauer: {{ item.duration }} Std.</small>
+            </div>
+            <span class="badge bg-primary rounded-pill">{{ item.cost }} €</span>
+          </li>
+        </ul>
+        <div class="d-flex justify-content-end align-items-center border-top pt-3">
+          <h4 class="mb-0 me-3">Gesamtbetrag:</h4>
+          <h3 class="fw-bold text-success mb-0">{{ invoiceData.total }} €</h3>
+        </div>
+      </div>
+      <div v-else class="alert alert-info">
+        Keine erledigten Aufgaben für die Rechnungsstellung gefunden.
+      </div>
+
+      <template #footer>
+        <button class="btn btn-secondary" @click="showInvoice = false">Abbrechen</button>
+      </template>
+    </TaskModal>
+
   </div>
 </template>
 
@@ -183,24 +214,24 @@ const { isAuthenticated, getAccessTokenSilently } = useAuth0();
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const tasks = ref([]);
-// Mache projects reaktiv
 const projects = ref(initialProjects || []);
 const loadingError = ref(null);
 
 const showCreate = ref(false);
 const showEdit = ref(false);
-// State für Projekt-Erstellung
 const showCreateProject = ref(false);
+// NEU: State für Rechnungs-Modal
+const showInvoice = ref(false);
+const invoiceData = ref({ total: 0, items: [] });
 
 const selectedTaskId = ref(null);
-
 const isAdmin = ref(false);
 
 const createForm = ref(null);
-const createProjectForm = ref(null); // Ref für das Projekt-Formular
+const createProjectForm = ref(null);
 const editForm = ref(null);
 let createFormBuffer = null;
-let createProjectFormBuffer = null; // Buffer für Projektdaten
+let createProjectFormBuffer = null;
 
 async function loadTasks() {
   loadingError.value = null;
@@ -212,7 +243,6 @@ async function loadTasks() {
     loadingError.value = "Fehler beim Laden der Aufgaben.";
   }
 }
-
 
 async function checkAdminRole() {
   try {
@@ -252,6 +282,33 @@ const filteredTasks = computed(() => {
   return grouped;
 });
 
+// NEU: Funktion zur Rechnungsberechnung
+function calculateInvoice() {
+  const doneTasks = filteredTasks.value["Erledigt"] || [];
+  let total = 0;
+  const items = [];
+
+  doneTasks.forEach(task => {
+    // Parsing der Dauer sicherstellen (falls String)
+    const duration = parseFloat(task.duration) || 0;
+    const cost = duration * 100;
+    total += cost;
+    items.push({
+      id: task.id,
+      title: task.title,
+      duration: duration,
+      cost: cost
+    });
+  });
+
+  invoiceData.value = {
+    total: total,
+    items: items
+  };
+  
+  showInvoice.value = true;
+}
+
 function openCreateTask() {
   if (!isAdmin.value) return;
   showCreate.value = true;
@@ -266,19 +323,16 @@ function openEditTask(id) {
   showEdit.value = true;
 }
 
-// Logik für Projekt erstellen
 function openCreateProject() {
   createProjectFormBuffer = null;
   showCreateProject.value = true;
 }
 
-// Callback wenn das Projekt-Formular abgesendet wird (via emit)
 function onProjectFormInput(body) {
   createProjectFormBuffer = body;
 }
 
 function submitCreateProject() {
-  // Löst das 'submit' Event im Child-Component aus, welches onProjectFormInput aufruft
   createProjectForm.value?.submitForm();
 
   if (!createProjectFormBuffer || !createProjectFormBuffer.title) {
@@ -286,7 +340,6 @@ function submitCreateProject() {
     return;
   }
   
-  // Füge das neue Projekt der Liste hinzu (nutzt 'title' aus dem Formular als Projektname)
   projects.value.push({ 
     name: createProjectFormBuffer.title, 
     active: false 
@@ -300,7 +353,6 @@ function onCreateFormInput(body) {
   createFormBuffer = body;
 }
 
-
 async function submitCreateTask() {
   if (!isAdmin.value) return;
 
@@ -312,10 +364,8 @@ async function submitCreateTask() {
   }
 
   try {
-
     const token = await getAccessTokenSilently();
     await createTask(token, createFormBuffer);
-
 
     showCreate.value = false;
     createFormBuffer = null;
@@ -325,7 +375,6 @@ async function submitCreateTask() {
     alert("Erstellen fehlgeschlagen.");
   }
 }
-
 
 async function saveTask(body) {
   if (!isAdmin.value) return;
@@ -356,7 +405,6 @@ async function deleteTaskById() {
     alert("Löschen fehlgeschlagen.");
   }
 }
-
 </script>
 
 <style scoped>
