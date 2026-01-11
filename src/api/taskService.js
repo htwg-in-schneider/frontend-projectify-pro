@@ -1,17 +1,13 @@
-import { useAuth0 } from "@auth0/auth0-vue";
-
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-/* ================= GET ALL TASKS ================= */
-export async function getAllTasks(title = "", status = "") {
-  const { getAccessTokenSilently } = useAuth0();
-  const token = await getAccessTokenSilently();
-
+// GET ALL TASKS
+export async function getAllTasks(token, title = "", status = "") {
   const params = new URLSearchParams();
-  if (title) params.append("title", title);
-  if (status) params.append("status", status);
+  if (title) params.set("title", title);
+  if (status) params.set("status", status);
 
   const res = await fetch(`${BASE_URL}/api/task?${params.toString()}`, {
+    method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -21,26 +17,8 @@ export async function getAllTasks(title = "", status = "") {
   return await res.json();
 }
 
-/* ================= GET SINGLE TASK ================= */
-export async function getTask(id) {
-  const { getAccessTokenSilently } = useAuth0();
-  const token = await getAccessTokenSilently();
-
-  const res = await fetch(`${BASE_URL}/api/task/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) throw new Error("Fehler beim Laden");
-  return await res.json();
-}
-
-/* ================= CREATE TASK (ADMIN) ================= */
-export async function createTask(body) {
-  const { getAccessTokenSilently } = useAuth0();
-  const token = await getAccessTokenSilently();
-
+// CREATE TASK (bleibt wie bei dir – mit Authorization)
+export async function createTask(token, body) {
   const res = await fetch(`${BASE_URL}/api/task`, {
     method: "POST",
     headers: {
@@ -54,11 +32,7 @@ export async function createTask(body) {
   return await res.json();
 }
 
-/* ================= UPDATE TASK (ADMIN) ================= */
-export async function updateTask(id, body) {
-  const { getAccessTokenSilently } = useAuth0();
-  const token = await getAccessTokenSilently();
-
+export async function updateTask(token, id, body) {
   const res = await fetch(`${BASE_URL}/api/task/${id}`, {
     method: "PUT",
     headers: {
@@ -72,11 +46,7 @@ export async function updateTask(id, body) {
   return await res.json();
 }
 
-/* ================= DELETE TASK (ADMIN) ================= */
-export async function deleteTask(id) {
-  const { getAccessTokenSilently } = useAuth0();
-  const token = await getAccessTokenSilently();
-
+export async function deleteTask(token, id) {
   const res = await fetch(`${BASE_URL}/api/task/${id}`, {
     method: "DELETE",
     headers: {

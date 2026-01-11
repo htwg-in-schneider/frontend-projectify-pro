@@ -1,51 +1,79 @@
 <script setup>
-//import Footer from '@/components/footer.vue';
-//import Navbar from '@/components/navbar.vue';
-import SpecialBanner from '@/components/specialBanner.vue';
-import NavButton from '@/components/navButton.vue';
-import Button from '@/components/button.vue';
-import { ref, onMounted } from 'vue';
+import SpecialBanner from "@/components/specialBanner.vue";
+import NavButton from "@/components/navButton.vue";
+import Button from "@/components/button.vue";
+import Navbar from "@/components/navbar.vue";
+import Footer from "@/components/footer.vue";
 
-const url = 'http://localhost:8081/api/task';
+import { ref, onMounted } from "vue";
+import { useAuth0 } from "@auth0/auth0-vue";
 
 const props = defineProps({
   id: {
     type: [String, Number],
-    required: true
-  }
+    required: true,
+  },
 });
 
 const task = ref(null);
+const loading = ref(false);
+const error = ref(null);
+
+const { getAccessTokenSilently } = useAuth0();
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 onMounted(() => {
   fetchTask();
 });
 
 async function fetchTask() {
+  loading.value = true;
+  error.value = null;
+
   try {
-    const response = await fetch(`${url}/${props.id}`);
+    const token = await getAccessTokenSilently();
+
+    const response = await fetch(`${API_BASE}/api/task/${props.id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+
     task.value = await response.json();
-    console.log(task.value);
-  } catch (error) {
-    console.error('Error fetching task:', error);
+  } catch (e) {
+    console.error("Error fetching task:", e);
+    error.value = "Aufgabe konnte nicht geladen werden.";
+  } finally {
+    loading.value = false;
   }
 }
 </script>
 
 <template>
-  <SpecialBanner text='Aufgabendetails' />
+  <SpecialBanner text="Aufgabendetails" />
   <Navbar />
 
   <section class="container py-5">
-    <div v-if="task" class="row">
+    <div v-if="loading" class="alert alert-info">
+      Lade Aufgabe...
+    </div>
 
+    <div v-else-if="error" class="alert alert-danger">
+      {{ error }}
+      <div class="mt-3">
+        <NavButton variant="secondary" to="/tasks">Zurück</NavButton>
+      </div>
+    </div>
+
+    <div v-else-if="task" class="row">
       <!-- Bildplatzhalter -->
       <div class="col-md-6">
-        <img 
-          src="https://via.placeholder.com/600x400?text=Task" 
+        <img
+          src="https://via.placeholder.com/600x400?text=Task"
           class="img-fluid rounded shadow-sm"
           alt="Task Bild"
         />
@@ -59,21 +87,21 @@ async function fetchTask() {
           Status: <strong>{{ task.status }}</strong>
         </p>
 
-        <p>
-          <strong>Bearbeiter:</strong> {{ task.assignedTo }}
-        </p>
+        <p><strong>Zugewiesen an:</strong> {{ task.user }}</p>
+        <p><strong>Start:</strong> {{ task.startDate }}</p>
+        <p><strong>Ende:</strong> {{ task.endDate }}</p>
+        <p><strong>Dauer:</strong> {{ task.duration }} Tage</p>
 
-        <p class="mt-3">{{ task.description }}</p>
-
-        <NavButton variant="secondary" class="me-2" to="/catalog">Zurück</NavButton>
-        <Button variant="accent">Bearbeiten</Button>
+        <div class="mt-4">
+          <NavButton variant="secondary" class="me-2" to="/tasks">Zurück</NavButton>
+          <Button v-if="false" variant="accent">Bearbeiten</Button>
+        </div>
       </div>
     </div>
 
-    <!-- Fallback, falls Task nicht existiert -->
     <div v-else class="text-center">
       <p>Aufgabe wurde nicht gefunden.</p>
-      <NavButton variant="secondary" to="/catalog">Zurück</NavButton>
+      <NavButton variant="secondary" to="/tasks">Zurück</NavButton>
     </div>
   </section>
 

@@ -76,11 +76,11 @@ async function checkAdminRole() {
   }
 }
 
-/* LOAD WITH FILTERS */
 async function loadTasks() {
   loadingError.value = null;
   try {
-    tasks.value = await getAllTasks(filterTitle.value, filterStatus.value);
+    const token = await getAccessTokenSilently();
+    tasks.value = await getAllTasks(token, filterTitle.value, filterStatus.value);
   } catch (e) {
     console.error(e);
     loadingError.value = 'Fehler beim Laden der Aufgaben. Ist das Backend aktiv?';
@@ -118,52 +118,49 @@ function onCreateFormInput(body) {
   createFormBuffer = body;
 }
 
+
 async function submitCreateTask() {
   if (!isAdmin.value) return;
 
   createForm.value?.submitForm();
-
-  if (!createFormBuffer) {
-    alert("Bitte Formular ausfüllen!");
-    return;
-  }
+  if (!createFormBuffer) return alert("Bitte Formular ausfüllen!");
 
   try {
-    await createTask(createFormBuffer);
+    const token = await getAccessTokenSilently();
+    await createTask(token, createFormBuffer);
     showCreate.value = false;
     createFormBuffer = null;
     await loadTasks();
   } catch (e) {
     console.error(e);
-    alert("Erstellen fehlgeschlagen (kein Admin oder Backend-Fehler).");
+    alert("Erstellen fehlgeschlagen.");
   }
 }
 
-/* SAVE (ADMIN ONLY) */
+
 async function onSaveTask(body) {
   if (!isAdmin.value) return;
-
   try {
-    await updateTask(selectedTaskId.value, body);
+    const token = await getAccessTokenSilently();
+    await updateTask(token, selectedTaskId.value, body);
     showEdit.value = false;
     await loadTasks();
   } catch (e) {
     console.error(e);
-    alert("Speichern fehlgeschlagen (kein Admin oder Backend-Fehler).");
+    alert("Speichern fehlgeschlagen.");
   }
 }
 
-/* DELETE (ADMIN ONLY) */
 async function onDeleteTask() {
   if (!isAdmin.value) return;
-
   try {
-    await deleteTask(selectedTaskId.value);
+    const token = await getAccessTokenSilently();
+    await deleteTask(token, selectedTaskId.value);
     showEdit.value = false;
     await loadTasks();
   } catch (e) {
     console.error(e);
-    alert("Löschen fehlgeschlagen (kein Admin oder Backend-Fehler).");
+    alert("Löschen fehlgeschlagen.");
   }
 }
 </script>
