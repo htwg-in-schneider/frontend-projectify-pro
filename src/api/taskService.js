@@ -1,7 +1,5 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// --- Bestehende Methoden ---
-
 export async function getAllTasks(token, title = "", status = "") {
   const params = new URLSearchParams();
   if (title) params.set("title", title);
@@ -49,8 +47,6 @@ export async function deleteTask(token, id) {
   return true;
 }
 
-// --- ✅ NEUE METHODEN FÜR EDIT & KOMMENTARE ---
-
 // Einzelne Aufgabe laden (für Edit Form)
 export async function getTaskById(token, id) {
   const res = await fetch(`${BASE_URL}/api/task/${id}`, {
@@ -62,10 +58,11 @@ export async function getTaskById(token, id) {
 
 // Kommentare zu einer Aufgabe laden
 export async function getComments(token, taskId) {
+  // Falls das Backend 404 zurückgibt
   const res = await fetch(`${BASE_URL}/api/comment/task/${taskId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) return []; // Falls keine Kommentare da sind oder 404
+  if (!res.ok) return []; 
   return await res.json();
 }
 

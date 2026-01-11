@@ -9,7 +9,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['save', 'delete']);
-const { getAccessTokenSilently, user: authUser } = useAuth0();
+// isAuthenticated hinzugefügt für extra Check
+const { getAccessTokenSilently, user: authUser, isAuthenticated } = useAuth0();
 
 const loading = ref(false);
 const commentsLoading = ref(false);
@@ -87,8 +88,14 @@ async function submitComment() {
   try {
     const token = await getAccessTokenSilently();
     
+    // Verbesserte Namensfindung: Name > Nickname > Email > Unbekannt
+    let currentUserName = 'Unbekannt';
+    if (authUser.value) {
+        currentUserName = authUser.value.name || authUser.value.nickname || authUser.value.email || 'Unbekannt';
+    }
+
     await addComment(token, {
-      userName: authUser.value?.name || authUser.value?.email || 'Unbekannt',
+      userName: currentUserName, 
       text: newComment.value,
       task: { id: props.taskId } // Verknüpfung zur Aufgabe
     });
@@ -151,7 +158,7 @@ defineExpose({ save });
           <input type="date" class="form-control" v-model="form.endDate" />
         </div>
         <div class="col-md-4">
-          <label class="form-label fw-bold">Dauer (h)</label>
+          <label class="form-label fw-bold">Dauer in Stunden</label>
           <input type="number" step="0.5" class="form-control" v-model="form.duration" />
         </div>
       </div>
