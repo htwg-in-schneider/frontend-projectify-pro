@@ -1,9 +1,8 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export async function getAllTasks(token, title = "", status = "") {
+export async function getAllTasks(token, projectId = null) { 
   const params = new URLSearchParams();
-  if (title) params.set("title", title);
-  if (status) params.set("status", status);
+  if (projectId) params.set("projectId", projectId);
 
   const res = await fetch(`${BASE_URL}/api/task?${params.toString()}`, {
     headers: { Authorization: `Bearer ${token}` },
