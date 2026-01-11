@@ -1,9 +1,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
-import { defineProps, defineEmits } from 'vue';
-import { useAuth0 } from '@auth0/auth0-vue'; // Auth Hook importieren
-import TaskComments from '@/components/TaskComments.vue';
-import { getTaskById } from '@/api/taskService.js'; // Service importieren
+import { useAuth0 } from '@auth0/auth0-vue';
+import { getTaskById, getComments, addComment } from '@/api/taskService.js';
 
 const props = defineProps({
   taskId: [Number, String],
@@ -11,84 +9,106 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['save', 'delete']);
-const { getAccessTokenSilently } = useAuth0(); // Token abrufen
+const { getAccessTokenSilently, user: authUser } = useAuth0();
 
-const title = ref('');
-const user = ref('');
-const startDate = ref('');
-const endDate = ref('');
-const duration = ref('');
-const status = ref('');
 const loading = ref(false);
+const commentsLoading = ref(false);
+const newComment = ref('');
 
-// Lädt die Daten, sobald sich die TaskID ändert oder die Komponente montiert wird
-async function loadTaskData() {
+// Formular-Daten
+const form = ref({
+  title: '',
+  user: '',
+  status: 'In Bearbeitung',
+  startDate: '',
+  endDate: '',
+  duration: 0
+});
+
+// Liste der Kommentare
+const comments = ref([]);
+
+// Helper: Datum formatieren (YYYY-MM-DD für Input-Feld)
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr).toISOString().split('T')[0];
+}
+
+// Daten laden (Aufgabe + Kommentare)
+async function loadData() {
   if (!props.taskId) return;
+  
+  loading.value = true;
+  try {
+    const token = await getAccessTokenSilently();
+    
+    // 1. Aufgabe laden
+    const task = await getTaskById(token, props.taskId);
+    form.value = {
+      title: task.title || '',
+      user: task.user || '',
+      status: task.status || 'In Bearbeitung',
+      startDate: formatDate(task.startDate),
+      endDate: formatDate(task.endDate),
+      duration: task.duration || 0
+    };
 
-  if (props.backend) {
-    loading.value = true;
-    try {
-      const token = await getAccessTokenSilently();
-      const data = await getTaskById(token, props.taskId);
-      mapTask(data);
-    } catch (e) {
-      console.error("Fehler beim Laden der Aufgabe:", e);
-    } finally {
-      loading.value = false;
-    }
-  } else {
-    loadTaskDummy();
+    // 2. Kommentare laden
+    await fetchComments(token);
+
+  } catch (e) {
+    console.error("Fehler beim Laden:", e);
+  } finally {
+    loading.value = false;
   }
 }
 
-function loadTaskDummy() {
-  const dummy = JSON.parse(localStorage.getItem('dummyTasks')) || [];
-  const task = dummy.find(t => t.id == props.taskId);
-  if (task) mapTask(task);
-}
-
-function mapTask(data) {
-  title.value = data.title || '';
-  user.value = data.user || '';
-  // Datum formatieren (YYYY-MM-DD), falls API ISO-String liefert
-  startDate.value = data.startDate ? data.startDate.split('T')[0] : '';
-  endDate.value = data.endDate ? data.endDate.split('T')[0] : '';
-  duration.value = data.duration || '';
-  status.value = data.status || 'In Bearbeitung';
-}
-
-// Watcher: Reagiert auf Änderung der taskId 
-watch(() => props.taskId, async (newId) => {
-  if (newId) {
-    // Leert Datenfelder
-    title.value = '';
-    user.value = '';
-    await loadTaskData();
+async function fetchComments(token) {
+  commentsLoading.value = true;
+  try {
+    const data = await getComments(token, props.taskId);
+    comments.value = data || [];
+  } catch (e) {
+    console.error(e);
+  } finally {
+    commentsLoading.value = false;
   }
+}
+
+// Watcher: Wenn sich die Task-ID ändert (anderer Klick), neu laden
+watch(() => props.taskId, (newId) => {
+  if (newId) loadData();
 }, { immediate: true });
 
-function save() {
-  if (
-    !title.value ||
-    !duration.value ||
-    !status.value
-  ) {
-    alert("Bitte die Pflichtfelder (Titel, Dauer, Status) ausfüllen!");
-    return;
-  }
+// Kommentar senden
+async function submitComment() {
+  if (!newComment.value.trim()) return;
 
-  emit('save', {
-    title: title.value,
-    user: user.value,
-    startDate: startDate.value,
-    endDate: endDate.value,
-    duration: Number(duration.value),
-    status: status.value
-  });
+  try {
+    const token = await getAccessTokenSilently();
+    
+    await addComment(token, {
+      userName: authUser.value?.name || authUser.value?.email || 'Unbekannt',
+      text: newComment.value,
+      task: { id: props.taskId } // Verknüpfung zur Aufgabe
+    });
+
+    newComment.value = ''; // Eingabe leeren
+    await fetchComments(token); // Liste aktualisieren
+
+  } catch (e) {
+    console.error(e);
+    alert("Kommentar konnte nicht gesendet werden.");
+  }
 }
 
-function del() {
-  emit('delete');
+// Aufgabe speichern
+function save() {
+  if (!form.value.title) {
+    alert("Titel ist ein Pflichtfeld.");
+    return;
+  }
+  emit('save', { ...form.value });
 }
 
 defineExpose({ save });
@@ -96,35 +116,88 @@ defineExpose({ save });
 
 <template>
   <div v-if="loading" class="text-center py-4">
-    <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
-    <span class="ms-2">Lade Daten...</span>
+    <span class="spinner-border text-primary"></span>
   </div>
-  
+
   <div v-else>
-    <label class="form-label">Titel</label>
-    <input class="form-control" v-model="title" />
+    <form @submit.prevent="save">
+      <div class="mb-3">
+        <label class="form-label fw-bold">Titel</label>
+        <input class="form-control" v-model="form.title" placeholder="Aufgaben Titel" />
+      </div>
 
-    <label class="form-label mt-3">Zugewiesen an</label>
-    <input class="form-control" v-model="user" />
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Zugewiesen an</label>
+          <input class="form-control" v-model="form.user" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Status</label>
+          <select class="form-select" v-model="form.status">
+            <option>Erledigt</option>
+            <option>In Bearbeitung</option>
+            <option>Review</option>
+          </select>
+        </div>
+      </div>
 
-    <label class="form-label mt-3">Status</label>
-    <select class="form-control" v-model="status">
-      <option value="Erledigt">Erledigt</option>
-      <option value="In Bearbeitung">In Bearbeitung</option>
-      <option value="Review">Review</option>
-    </select>
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Startdatum</label>
+          <input type="date" class="form-control" v-model="form.startDate" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Enddatum</label>
+          <input type="date" class="form-control" v-model="form.endDate" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Dauer (h)</label>
+          <input type="number" step="0.5" class="form-control" v-model="form.duration" />
+        </div>
+      </div>
+    </form>
 
-    <label class="form-label mt-3">Startdatum</label>
-    <input type="date" class="form-control" v-model="startDate" />
+    <hr class="my-4" />
 
-    <label class="form-label mt-3">Dauer in Stunden</label>
-    <input type="number" class="form-control" v-model="duration" />
+    <div>
+      <h5 class="fw-bold mb-3">Kommentare</h5>
+      
+      <div class="comment-list mb-3" v-if="comments.length > 0">
+        <div v-for="c in comments" :key="c.id" class="card mb-2 bg-light border-0">
+          <div class="card-body p-2">
+            <div class="fw-bold small text-primary">{{ c.userName }}</div>
+            <div class="text-dark">{{ c.text }}</div>
+          </div>
+        </div>
+      </div>
+      <div v-else class="text-muted mb-3 fst-italic">
+        Keine Kommentare vorhanden.
+      </div>
 
-    <label class="form-label mt-3">Enddatum</label>
-    <input type="date" class="form-control" v-model="endDate" />
-
-    <div class="mt-4">
-      <TaskComments :taskId="props.taskId" />
+      <div class="input-group">
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Kommentar schreiben..." 
+          v-model="newComment"
+          @keyup.enter="submitComment"
+        />
+        <button class="btn btn-primary" type="button" @click="submitComment">
+          Senden
+        </button>
+      </div>
     </div>
+
   </div>
 </template>
+
+<style scoped>
+.comment-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 10px;
+  background: white;
+}
+</style>
