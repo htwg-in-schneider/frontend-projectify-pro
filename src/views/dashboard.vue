@@ -159,9 +159,9 @@
       </template>
     </TaskModal>
 
-    <TaskModal :show="showInvoice" title="Rechnung" @close="showInvoice = false">
+    <TaskModal :show="showInvoice" title="Rechnung erstellen" @close="showInvoice = false">
       <div v-if="invoiceData.items.length > 0">
-        <p class="text-muted mb-3">für alle Aufgaben die Bereits erledigt sind (Stundensatz: 100€)</p>
+        <p class="text-muted mb-3">für alle Aufgaben die Bereits erledigt sind <strong>"Erledigt"</strong> (Stundensatz: 100€)</p>
         <ul class="list-group mb-4">
           <li v-for="item in invoiceData.items" :key="item.id" class="list-group-item d-flex justify-content-between align-items-center">
             <div>
