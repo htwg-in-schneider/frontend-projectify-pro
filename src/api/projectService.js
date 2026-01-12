@@ -23,7 +23,21 @@ export async function createProject(token, projectData) {
   return await res.json();
 }
 
-// Optional: Projekt löschen (falls benötigt)
+// Projekt aktualisieren
+export async function updateProject(token, id, projectData) {
+  const res = await fetch(`${BASE_URL}/api/project/${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}` 
+    },
+    body: JSON.stringify(projectData)
+  });
+  if (!res.ok) throw new Error("Failed to update project");
+  return await res.json();
+}
+
+// Projekt löschen 
 export async function deleteProject(token, id) {
   const res = await fetch(`${BASE_URL}/api/project/${id}`, {
     method: "DELETE",

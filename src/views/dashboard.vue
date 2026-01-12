@@ -11,8 +11,9 @@
                 <button v-if="selectedProject" class="btn btn-sm btn-outline-secondary mb-2" @click="closeProject">
                   &larr; Zurück zur Übersicht
                 </button>
-                <h2 class="fw-bold mb-0 dashboard-title">
-                  Projekt Übersicht 
+                
+                <h2 v-if="!selectedProject" class="fw-bold mb-0 dashboard-title">
+                  Projekt Übersicht
                 </h2>
               </div>
 
@@ -28,6 +29,15 @@
 
                 <Button
                   v-if="selectedProject && isAdmin"
+                  variant="secondary"
+                  class="me-2"
+                  @click="openEditProject(selectedProject)"
+                >
+                  Projekt bearbeiten
+                </Button>
+
+                <Button
+                  v-if="selectedProject && isAdmin"
                   variant="primary"
                   class="me-2 btn-custom-blue"
                   @click="openCreateTask"
@@ -36,7 +46,6 @@
                 </Button>
 
                 <Button 
-                  v-if="selectedProject"
                   variant="success" 
                   class="btn-custom-green"
                   @click="calculateInvoice"
@@ -58,62 +67,27 @@
 
             <div v-if="!selectedProject && projects.length > 0" class="row g-4 kanban-container">
               
-               <div class="col-md-4">
-                <h4 class="mb-3 kanban-header">Erledigt</h4>
+               <div class="col-md-4" v-for="status in ['Erledigt', 'In Bearbeitung', 'Offen']" :key="status">
+                <h4 class="mb-3 kanban-header">{{ status }}</h4>
                 <div class="kanban-column">
                   <div 
-                    v-for="proj in filteredProjects?.Erledigt" 
+                    v-for="proj in filteredProjects?.[status]" 
                     :key="proj.id" 
-                    class="card mb-3 project-card border-0 shadow-sm"
+                    class="card mb-3 project-card border-0 shadow-sm position-relative"
                     @click="selectProject(proj)"
                   >
-                    <div class="card-body border-start border-4 border-success">
-                      <h6 class="card-title fw-bold mb-2">{{ proj.name }}</h6>
-                      <div class="small text-muted mb-1" v-if="proj.startDate || proj.endDate">
-                        <i class="bi bi-calendar-event me-1"></i>
-                        {{ proj.startDate || '?' }} - {{ proj.endDate || '?' }}
-                      </div>
-                      <div class="small text-muted" v-if="proj.duration">
-                        <i class="bi bi-clock me-1"></i> {{ proj.duration }} Std.
-                      </div>
+                    <div v-if="isAdmin" class="position-absolute top-0 end-0 p-2" style="z-index: 10;">
+                      <button class="btn btn-sm btn-light border rounded-circle" @click.stop="openEditProject(proj)">
+                        ✏️
+                      </button>
                     </div>
-                  </div>
-                </div>
-              </div>
 
-              <div class="col-md-4">
-                <h4 class="mb-3 kanban-header">In Bearbeitung</h4>
-                <div class="kanban-column">
-                  <div 
-                    v-for="proj in filteredProjects?.['In Bearbeitung']" 
-                    :key="proj.id" 
-                    class="card mb-3 project-card border-0 shadow-sm"
-                    @click="selectProject(proj)"
-                  >
-                    <div class="card-body border-start border-4 border-primary">
-                      <h6 class="card-title fw-bold mb-2">{{ proj.name }}</h6>
-                      <div class="small text-muted mb-1" v-if="proj.startDate || proj.endDate">
-                        <i class="bi bi-calendar-event me-1"></i>
-                        {{ proj.startDate || '?' }} - {{ proj.endDate || '?' }}
-                      </div>
-                      <div class="small text-muted" v-if="proj.duration">
-                        <i class="bi bi-clock me-1"></i> {{ proj.duration }} Std.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-4">
-                <h4 class="mb-3 kanban-header">Offen</h4>
-                <div class="kanban-column">
-                  <div 
-                    v-for="proj in filteredProjects?.Offen" 
-                    :key="proj.id" 
-                    class="card mb-3 project-card border-0 shadow-sm"
-                    @click="selectProject(proj)"
-                  >
-                    <div class="card-body border-start border-4 border-warning">
+                    <div class="card-body border-start border-4" 
+                         :class="{
+                           'border-success': status === 'Erledigt',
+                           'border-primary': status === 'In Bearbeitung',
+                           'border-warning': status === 'Offen'
+                         }">
                       <h6 class="card-title fw-bold mb-2">{{ proj.name }}</h6>
                       <div class="small text-muted mb-1" v-if="proj.startDate || proj.endDate">
                         <i class="bi bi-calendar-event me-1"></i>
@@ -130,24 +104,15 @@
             </div>
 
             <div v-else-if="selectedProject" class="row g-4 kanban-container">
-              <div class="col-md-4">
-                <h4 class="mb-3 kanban-header">Erledigt</h4>
+              <div class="col-md-4" v-for="status in ['Erledigt', 'In Bearbeitung', 'Offen']" :key="status">
+                <h4 class="mb-3 kanban-header">{{ status }}</h4>
                 <div class="kanban-column">
-                  <TaskCard v-for="task in filteredTasks?.Erledigt" :key="task.id" :task="task" @click="openEditTask(task.id)" />
-                </div>
-              </div>
-
-              <div class="col-md-4">
-                <h4 class="mb-3 kanban-header">In Bearbeitung</h4>
-                <div class="kanban-column">
-                  <TaskCard v-for="task in filteredTasks?.['In Bearbeitung']" :key="task.id" :task="task" @click="openEditTask(task.id)" />
-                </div>
-              </div>
-
-              <div class="col-md-4">
-                <h4 class="mb-3 kanban-header">Offen</h4>
-                <div class="kanban-column">
-                  <TaskCard v-for="task in filteredTasks?.Offen" :key="task.id" :task="task" @click="openEditTask(task.id)" />
+                  <TaskCard 
+                    v-for="task in filteredTasks?.[status]" 
+                    :key="task.id" 
+                    :task="task" 
+                    @click="openEditTask(task.id)" 
+                  />
                 </div>
               </div>
             </div>
@@ -170,9 +135,7 @@
           <div v-if="selectedProject">
             <h6 class="text-primary fw-bold">Aktuelles Projekt:</h6>
             <p class="fs-5 fw-bold mb-1">{{ selectedProject.name }}</p>
-            <p class="small text-muted">
-              Klicken Sie auf "Zurück zur Übersicht", um das Projekt zu wechseln.
-            </p>
+            <p class="small text-muted">Status: {{ selectedProject.status }}</p>
           </div>
           <div v-else>
              <p class="text-muted small">
@@ -208,13 +171,49 @@
       </template>
     </TaskModal>
 
+    <TaskModal :show="showEditProject" title="Projekt bearbeiten" @close="showEditProject = false">
+      <div v-if="editProjectData">
+        <div class="mb-3">
+          <label class="form-label">Projekt Name</label>
+          <input v-model="editProjectData.name" type="text" class="form-control" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Status</label>
+          <select v-model="editProjectData.status" class="form-select">
+            <option>Offen</option>
+            <option>In Bearbeitung</option>
+            <option>Erledigt</option>
+          </select>
+        </div>
+        <div class="row">
+          <div class="col-6 mb-3">
+             <label class="form-label">Startdatum</label>
+             <input v-model="editProjectData.startDate" type="date" class="form-control" />
+          </div>
+          <div class="col-6 mb-3">
+             <label class="form-label">Enddatum</label>
+             <input v-model="editProjectData.endDate" type="date" class="form-control" />
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Geplante Dauer (Std.)</label>
+          <input v-model="editProjectData.duration" type="number" class="form-control" />
+        </div>
+      </div>
+      <template #footer>
+        <button class="btn btn-danger" @click="deleteProjectById">Löschen</button>
+        <button class="btn btn-success" @click="submitEditProject">Speichern</button>
+      </template>
+    </TaskModal>
+
     <TaskModal :show="showInvoice" title="Rechnung" @close="showInvoice = false">
       <div v-if="invoiceData.items.length > 0">
-        <p class="text-muted mb-3">für alle Aufgaben die Bereits erledigt sind (Stundensatz: 100€)</p>
+        <p class="text-muted mb-3">für alle erledigten Aufgaben (Stundensatz: 100€)</p>
         <ul class="list-group mb-4">
           <li v-for="item in invoiceData.items" :key="item.id" class="list-group-item d-flex justify-content-between align-items-center">
             <div>
               <div class="fw-bold">{{ item.title }}</div>
+              <small v-if="item.projectName" class="text-muted d-block">Projekt: {{ item.projectName }}</small>
               <small class="text-muted">Dauer: {{ item.duration }} Std.</small>
             </div>
             <span class="badge bg-primary rounded-pill">{{ item.cost }} €</span>
@@ -248,10 +247,9 @@ import CreateTaskForm from "@/components/CreateTaskForm.vue";
 import EditTaskForm from "@/components/EditTaskForm.vue";
 
 // Data & API
-// Nur noch staff laden, KEINE Projekte aus data.js
 import { staff } from "@/data.js"; 
 import { getAllTasks, createTask, updateTask, deleteTask } from "@/api/taskService.js";
-import { getAllProjects, createProject } from "@/api/projectService.js";
+import { getAllProjects, createProject, updateProject, deleteProject } from "@/api/projectService.js";
 
 const router = useRouter();
 const { isAuthenticated, getAccessTokenSilently } = useAuth0();
@@ -259,7 +257,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 // STATE
 const tasks = ref([]);
-const projects = ref([]); // Startet leer
+const projects = ref([]); 
 const selectedProject = ref(null);
 
 const loadingError = ref(null);
@@ -268,9 +266,12 @@ const isAdmin = ref(false);
 const showCreate = ref(false);
 const showEdit = ref(false);
 const showCreateProject = ref(false);
+const showEditProject = ref(false); 
 const showInvoice = ref(false);
+
 const invoiceData = ref({ total: 0, items: [] });
 const selectedTaskId = ref(null);
+const editProjectData = ref({ id: null, name: '', status: '', startDate: '', endDate: '', duration: '' });
 
 const createForm = ref(null);
 const createProjectForm = ref(null);
@@ -293,7 +294,6 @@ async function loadProjects() {
   loadingError.value = null;
   try {
     const token = await getAccessTokenSilently();
-    //API CALL
     const backendProjects = await getAllProjects(token);
     projects.value = backendProjects || [];
   } catch (e) {
@@ -305,7 +305,6 @@ async function loadProjects() {
 
 async function selectProject(project) {
   selectedProject.value = project;
-  // Tasks nur laden, wenn eine ID vorhanden ist
   if (project.id) {
     await loadTasksForProject(project.id);
   }
@@ -342,16 +341,11 @@ async function checkAdminRole() {
 
 const filteredProjects = computed(() => {
   const grouped = { Erledigt: [], "In Bearbeitung": [], Offen: [] };
-  
   for (const p of projects.value) {
     let status = p.status || "In Bearbeitung";
     if (status === 'Review') status = 'Offen';
-
-    if (grouped[status]) {
-      grouped[status].push(p);
-    } else {
-      grouped["In Bearbeitung"].push(p);
-    }
+    if (grouped[status]) grouped[status].push(p);
+    else grouped["In Bearbeitung"].push(p);
   }
   return grouped;
 });
@@ -368,16 +362,85 @@ const filteredTasks = computed(() => {
 
 // --- ACTIONS ---
 
-function calculateInvoice() {
-  const doneTasks = filteredTasks.value["Erledigt"] || [];
+function openEditProject(project) {
+  editProjectData.value = { ...project };
+  showEditProject.value = true;
+}
+
+async function submitEditProject() {
+  if (!editProjectData.value.name) return alert("Name fehlt");
+  try {
+    const token = await getAccessTokenSilently();
+    await updateProject(token, editProjectData.value.id, editProjectData.value);
+    showEditProject.value = false;
+    await loadProjects();
+    if (selectedProject.value && selectedProject.value.id === editProjectData.value.id) {
+       selectedProject.value = { ...editProjectData.value };
+    }
+  } catch(e) {
+    alert("Speichern fehlgeschlagen: " + e.message);
+  }
+}
+
+async function deleteProjectById() {
+  if (!confirm("Möchten Sie dieses Projekt wirklich löschen? Alle Aufgaben darin werden ebenfalls gelöscht.")) return;
+  try {
+    const token = await getAccessTokenSilently();
+    await deleteProject(token, editProjectData.value.id);
+    showEditProject.value = false;
+    if (selectedProject.value && selectedProject.value.id === editProjectData.value.id) {
+       closeProject();
+    }
+    await loadProjects();
+  } catch(e) {
+    alert("Löschen fehlgeschlagen: " + e.message);
+  }
+}
+
+// Helper: Projektname finden für Gesamtrechnung
+function getProjectName(id) {
+  const p = projects.value.find(proj => proj.id === id);
+  return p ? p.name : '';
+}
+
+async function calculateInvoice() {
+  let tasksToProcess = [];
+
+  // Fall A: Gesamtübersicht (kein Projekt ausgewählt) -> Alle Aufgaben laden
+  if (!selectedProject.value) {
+    try {
+      const token = await getAccessTokenSilently();
+      // getAllTasks ohne ID lädt ALLES
+      const allTasks = await getAllTasks(token);
+      tasksToProcess = allTasks.filter(t => t.status === 'Erledigt');
+    } catch (e) {
+      console.error(e);
+      alert("Fehler beim Laden der Aufgaben für die Gesamtrechnung.");
+      return;
+    }
+  } 
+  // Fall B: Einzelprojekt -> Lokale Tasks nutzen
+  else {
+    tasksToProcess = filteredTasks.value["Erledigt"] || [];
+  }
+
+  // Berechnung
   let total = 0;
   const items = [];
-  doneTasks.forEach(task => {
+  tasksToProcess.forEach(task => {
     const duration = parseFloat(task.duration) || 0;
     const cost = duration * 100;
     total += cost;
-    items.push({ id: task.id, title: task.title, duration, cost });
+    items.push({ 
+      id: task.id, 
+      title: task.title, 
+      duration, 
+      cost,
+      // Projektname nur hinzufügen, wenn wir in der Gesamtübersicht sind
+      projectName: !selectedProject.value ? getProjectName(task.projectId) : null 
+    });
   });
+  
   invoiceData.value = { total, items };
   showInvoice.value = true;
 }
@@ -401,7 +464,6 @@ async function submitCreateProject() {
       endDate: createProjectFormBuffer.endDate || "",
       duration: createProjectFormBuffer.duration || ""
     });
-    // Nach Erstellen neu laden, damit das neue Projekt vom Backend kommt
     await loadProjects();
     showCreateProject.value = false;
   } catch (e) { alert("Fehler Projekt erstellen"); }
