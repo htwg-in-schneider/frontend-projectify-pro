@@ -1,55 +1,63 @@
 <script setup>
-const props = defineProps({
-  task: {
-    type: Object,
-    required: true,
-  },
-});
 
-// Event an Parent senden, wenn Karte geklickt wird
-const emit = defineEmits(["click"]);
+const props = defineProps({
+  task: Object
+})
+
+const emit = defineEmits(['edit'])
 </script>
 
 <template>
-  <!-- Ganze Karte klickbar -->
-  <div class="card mb-3 task-card shadow-sm" @click="emit('click')">
-    <div class="card-body">
-
-      <!-- Titel -->
-      <h5 class="card-title">{{ task.title }}</h5>
-
-      <!-- Zugewiesen an -->
-      <p class="card-text small text-muted mb-2">
-        {{ task.user }}
-      </p>
-
-      <!-- Details -->
-      <div class="task-details small">
-        <p class="mb-0">Start: {{ task.startDate }}</p>
-        <p class="mb-0">Ende: {{ task.endDate }}</p>
-        <p class="mb-0">Dauer: {{ task.duration }} Stunden</p>
+  <div 
+    class="card mb-3 shadow-sm border-0 project-card" 
+    @click="$emit('edit', task.id)"
+  >
+    <div 
+      class="card-body border-start border-4" 
+      :class="{
+        'border-success': task.status === 'Erledigt', 
+        'border-primary': task.status === 'In Bearbeitung', 
+        'border-warning': task.status === 'Offen'
+      }"
+    >
+      <div class="d-flex justify-content-between align-items-center">
+        <h6 class="card-title fw-bold mb-0 text-dark">{{ task.title }}</h6>
       </div>
-
+      
+      <p v-if="task.description" class="card-text mt-2 text-muted small mb-2">
+        {{ task.description }}
+      </p>
+      
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span class="small text-muted" style="font-size: 0.75rem;">
+          👤 {{ task.user || task.assignedTo || task.assignedUser || 'Nicht zugewiesen' }}
+        </span>
+        <span v-if="task.duration" class="small text-muted" style="font-size: 0.75rem;">
+          ⏱ {{ task.duration }} Std.
+        </span>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.task-card {
-  position: relative;
-  border-left: 3px solid var(--bs-info, #0dcaf0);
+.project-card {
   cursor: pointer;
-  transition: transform 0.1s ease-in-out;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  background: white;
+  border-radius: 8px;
 }
 
-.task-card:hover {
-  transform: scale(1.01);
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.12) !important;
 }
 
-.comment-icon {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-  color: #aaa;
+.border-warning { border-color: #ffc107 !important; } 
+.border-primary { border-color: #0d6efd !important; } 
+.border-success { border-color: #198754 !important; } 
+
+.project-card {
+  user-select: none;
 }
 </style>

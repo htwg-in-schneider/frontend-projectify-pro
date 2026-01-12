@@ -275,11 +275,19 @@ function openEditTask(id) {
 async function saveTask(body) {
   try {
     const token = await getAccessTokenSilently();
-    const payload = { ...body, projectId: selectedProject.value.id };
+    const payload = { 
+      ...body, 
+      projectId: selectedProject.value.id,
+      assignedTo: body.assignedUser || body.assignedTo 
+    };
+    
     await updateTask(token, selectedTaskId.value, payload);
     showEdit.value = false;
+
     await loadTasksForProject(selectedProject.value.id);
-  } catch (e) { alert("Speichern fehlgeschlagen"); }
+  } catch (e) { 
+    alert("Speichern fehlgeschlagen"); 
+  }
 }
 
 async function deleteTaskById() {
@@ -289,6 +297,18 @@ async function deleteTaskById() {
     showEdit.value = false;
     await loadTasksForProject(selectedProject.value.id);
   } catch (e) { alert("Löschen fehlgeschlagen"); }
+}
+
+async function handleStatusUpdate(taskId, newStatus) {
+  try {
+    const token = await getAccessTokenSilently()
+    await updateTaskStatus(token, taskId, newStatus)
+    // Liste lokal aktualisieren
+    const task = tasks.value.find(t => t.id === taskId)
+    if (task) task.status = newStatus
+  } catch (e) {
+    console.error("Status-Update fehlgeschlagen", e)
+  }
 }
 </script>
 

@@ -1,17 +1,46 @@
 <script setup>
 import Button from './button.vue'
-import { computed } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth0 } from '@auth0/auth0-vue'
 
 const route = useRoute()
 const router = useRouter()
 
-const { logout, isAuthenticated, isLoading } = useAuth0()
+const { logout, isAuthenticated, isLoading, user, getAccessTokenSilently } = useAuth0()
+const profileData = ref(null)
 
 const shouldHideLoginButton = computed(() => {
   return route.meta.hideLoginButton
 })
+
+// Lädt die Rollen-Info aus deinem Backend
+async function loadUserRole() {
+  if (isAuthenticated.value) {
+    try {
+      const token = await getAccessTokenSilently({
+        authorizationParams: {
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE
+        }
+      })
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.ok) {
+        profileData.value = await response.json()
+      }
+    } catch (e) {
+      console.warn('Rollen konnten nicht geladen werden', e)
+    }
+  }
+}
+
+// Sobald der Login fertig ist, Rolle laden
+watch(isAuthenticated, (newVal) => {
+  if (newVal) loadUserRole()
+})
+
+onMounted(loadUserRole)
 
 const login = () => {
   router.push('/dashboard')
@@ -28,7 +57,7 @@ const logoutUser = () => {
 
 <template>
   <header>
-    <nav class="navbar navbar-expand-lg navbar-light bg-white">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
       <div class="container">
 
         <router-link class="navbar-brand fw-bold text-accent" to="/">
@@ -61,16 +90,47 @@ const logoutUser = () => {
               </Button>
             </li>
 
-            <li
-              class="nav-item ms-lg-2 order-2 order-lg-1"
+            <li 
+              class="nav-item dropdown ms-lg-3 order-lg-2" 
               v-if="isAuthenticated && !isLoading"
             >
-              <Button variant="accent" @click="logoutUser">
-                Abmelden
-              </Button>
+              <a 
+                class="nav-link dropdown-toggle p-0" 
+                href="#" 
+                id="userProfileDropdown" 
+                data-bs-toggle="dropdown" 
+                aria-expanded="false"
+              >
+                <img 
+                  :src="user?.picture" 
+                  alt="Profil" 
+                  class="rounded-circle border border-2 border-primary" 
+                  style="height: 38px; width: 38px; object-fit: cover;"
+                />
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userProfileDropdown">
+                <li class="dropdown-header">
+                  Eingeloggt als: <strong>{{ user?.nickname || user?.name || 'Benutzer' }}</strong>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <router-link class="dropdown-item" to="/profile">Mein Profil</router-link>
+                </li>
+                
+                <li v-if="profileData?.role === 'ADMIN'">
+                  <router-link class="dropdown-item" to="/admin/users">
+                    Nutzerverwaltung
+                  </router-link>
+                </li>
+
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <button class="dropdown-item text-danger" @click="logoutUser">Abmelden</button>
+                </li>
+              </ul>
             </li>
 
-            <li class="nav-item dropdown ms-lg-2 order-1 order-lg-2">
+            <li class="nav-item dropdown ms-lg-2 order-1 order-lg-3">
               <Button 
                 variant="secondary"
                 class="dropdown-toggle"
@@ -80,7 +140,7 @@ const logoutUser = () => {
               >
                 <img src="../assets/icons/menue.png" style="height: 24px;" />
               </Button>
-              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+              <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="navbarDropdown">
                 <li>
                   <a class="dropdown-item" href="#" @click.prevent="router.push('/')">
                     Startseite
@@ -100,3 +160,9 @@ const logoutUser = () => {
     </nav>
   </header>
 </template>
+
+<style scoped>
+.dropdown-toggle::after {
+  display: none;
+}
+</style>

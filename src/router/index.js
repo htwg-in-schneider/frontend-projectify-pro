@@ -7,6 +7,8 @@ import Profile from '@/views/Profile.vue'
 import Dashboard from '@/views/dashboard.vue'
 import Impressum from '../views/imprint.vue'   
 import Datenschutz from '../views/dataProtection.vue' 
+import UserManagement from '../views/UserManagement.vue'
+
 const routes = [
   {
     path: '/',
@@ -27,6 +29,15 @@ const routes = [
     meta: { requiresAuth: true },
     beforeEnter: authGuard
   },
+
+  { 
+    // NEU: Admin-Nutzerverwaltung
+    path: '/admin/users', 
+    name: 'user-management', 
+    component: UserManagement, 
+    beforeEnter: authGuard 
+  },
+  
   {
     path: '/task/:id',
     name: 'task-detail',
