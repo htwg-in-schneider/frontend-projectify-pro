@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import CreateCommentForm from '@/components/CreateCommentForm.vue';
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const props = defineProps({
   taskId: {
