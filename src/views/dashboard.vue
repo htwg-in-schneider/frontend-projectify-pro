@@ -12,10 +12,7 @@ import EditTaskForm from "@/components/EditTaskForm.vue";
 // API Services
 import { getAllTasks, createTask, updateTask, deleteTask } from "@/api/taskService.js";
 import { getAllProjects, createProject, updateProject, deleteProject } from "@/api/projectService.js";
-// NEU: User Service importieren
 import { getAllUsers } from "@/api/userService.js"; 
-
-// HINWEIS: "import { staff } from '@/data.js';" WURDE ENTFERNT!
 
 const router = useRouter();
 const { isAuthenticated, getAccessTokenSilently } = useAuth0();
@@ -24,8 +21,11 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 // STATE
 const tasks = ref([]);
 const projects = ref([]); 
-const staff = ref([]); // NEU: Ist jetzt ein ref, das gefüllt wird
+const staff = ref([]);
 const selectedProject = ref(null);
+
+// 
+const searchQuery = ref('');
 
 const loadingError = ref(null);
 const isAdmin = ref(false);
@@ -47,11 +47,10 @@ let createFormBuffer = null;
 let createProjectFormBuffer = null;
 
 onMounted(async () => {
-  // Parallel Projekte und Admin-Status laden
   await loadProjects(); 
   if (isAuthenticated.value) {
     await checkAdminRole();
-    await loadStaff(); // NEU: Mitarbeiter laden
+    await loadStaff();
   }
 });
 
@@ -64,13 +63,10 @@ watch(isAuthenticated, async (v) => {
 
 // --- API ACTIONS ---
 
-// NEU: Mitarbeiter laden Funktion
 async function loadStaff() {
   try {
     const token = await getAccessTokenSilently();
     const users = await getAllUsers(token);
-    // Wir speichern nur die Namen für die Sidebar, oder ganze Objekte
-    // Hier gehen wir davon aus, dass das Backend Objekte mit 'username' oder 'name' liefert
     staff.value = users.map(u => u.username || u.name || u.email);
   } catch (e) {
     console.error("Fehler beim Laden der Mitarbeiter:", e);
@@ -92,6 +88,7 @@ async function loadProjects() {
 
 async function selectProject(project) {
   selectedProject.value = project;
+  searchQuery.value = ''; // Suche beim Projektwechsel zurücksetzen
   if (project.id) {
     await loadTasksForProject(project.id);
   }
@@ -99,6 +96,7 @@ async function selectProject(project) {
 
 function closeProject() {
   selectedProject.value = null;
+  searchQuery.value = '';
   tasks.value = [];
 }
 
@@ -124,11 +122,17 @@ async function checkAdminRole() {
   } catch(e) { isAdmin.value = false; }
 }
 
-// --- COMPUTED ---
+// --- COMPUTED (GEFILTERT DURCH SUCHE) ---
+
 
 const filteredProjects = computed(() => {
   const grouped = { Erledigt: [], "In Bearbeitung": [], Offen: [] };
-  for (const p of projects.value) {
+  
+  const searchMatch = projects.value.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+
+  for (const p of searchMatch) {
     let status = p.status || "In Bearbeitung";
     if (status === 'Review') status = 'Offen';
     if (grouped[status]) grouped[status].push(p);
@@ -137,9 +141,15 @@ const filteredProjects = computed(() => {
   return grouped;
 });
 
+
 const filteredTasks = computed(() => {
   const grouped = { Erledigt: [], "In Bearbeitung": [], Offen: [] };
-  for (const t of tasks.value) {
+  
+  const searchMatch = tasks.value.filter(t => 
+    t.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+
+  for (const t of searchMatch) {
     let status = t.status;
     if (status === 'Review') status = 'Offen'; 
     if (grouped[status]) grouped[status].push(t);
@@ -283,7 +293,6 @@ async function saveTask(body) {
     
     await updateTask(token, selectedTaskId.value, payload);
     showEdit.value = false;
-
     await loadTasksForProject(selectedProject.value.id);
   } catch (e) { 
     alert("Speichern fehlgeschlagen"); 
@@ -299,17 +308,6 @@ async function deleteTaskById() {
   } catch (e) { alert("Löschen fehlgeschlagen"); }
 }
 
-async function handleStatusUpdate(taskId, newStatus) {
-  try {
-    const token = await getAccessTokenSilently()
-    await updateTaskStatus(token, taskId, newStatus)
-    // Liste lokal aktualisieren
-    const task = tasks.value.find(t => t.id === taskId)
-    if (task) task.status = newStatus
-  } catch (e) {
-    console.error("Status-Update fehlgeschlagen", e)
-  }
-}
 </script>
 
 <template>
@@ -320,29 +318,42 @@ async function handleStatusUpdate(taskId, newStatus) {
         <div class="dashboard-wrapper p-4 p-md-5">
           <div class="kanban-area">
 
-            <div class="d-flex justify-content-between align-items-center mb-4 dashboard-header-container">
-              <div>
-                <button v-if="selectedProject" class="btn btn-sm btn-outline-secondary mb-2" @click="closeProject">
-                  &larr; Zurück zur Übersicht
-                </button>
-                <h2 v-if="!selectedProject" class="fw-bold mb-0 dashboard-title">
-                  Projekt Übersicht
-                </h2>
+            <div class="d-flex flex-column mb-4 dashboard-header-container">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                  <button v-if="selectedProject" class="btn btn-sm btn-outline-secondary mb-2" @click="closeProject">
+                    &larr; Zurück zur Übersicht
+                  </button>
+                  <h2 v-if="!selectedProject" class="fw-bold mb-0 dashboard-title">Projekt Übersicht</h2>
+                  <h2 v-else class="fw-bold mb-0 dashboard-title">{{ selectedProject.name }}</h2>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center">
+                  <Button v-if="!selectedProject" variant="primary" class="me-2 btn-custom-blue" @click="openCreateProject">
+                    Neues Projekt
+                  </Button>
+                  <Button v-if="selectedProject && isAdmin" variant="secondary" class="me-2" @click="openEditProject(selectedProject)">
+                    Projekt bearbeiten
+                  </Button>
+                  <Button v-if="selectedProject && isAdmin" variant="primary" class="me-2 btn-custom-blue" @click="openCreateTask">
+                    Aufgabe erstellen
+                  </Button>
+                  <Button variant="success" class="btn-custom-green" @click="calculateInvoice">
+                    Rechnung erstellen
+                  </Button>
+                </div>
               </div>
 
-              <div class="d-flex flex-wrap align-items-center">
-                <Button v-if="!selectedProject" variant="primary" class="me-2 btn-custom-blue" @click="openCreateProject">
-                  Neues Projekt
-                </Button>
-                <Button v-if="selectedProject && isAdmin" variant="secondary" class="me-2" @click="openEditProject(selectedProject)">
-                  Projekt bearbeiten
-                </Button>
-                <Button v-if="selectedProject && isAdmin" variant="primary" class="me-2 btn-custom-blue" @click="openCreateTask">
-                  Aufgabe erstellen
-                </Button>
-                <Button variant="success" class="btn-custom-green" @click="calculateInvoice">
-                  Rechnung erstellen
-                </Button>
+              <div class="search-container">
+                <div class="input-group shadow-sm">
+                  <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                  <input 
+                    type="text" 
+                    v-model="searchQuery" 
+                    class="form-control border-start-0 ps-0" 
+                    :placeholder="selectedProject ? 'Aufgaben in diesem Projekt suchen...' : 'Projekte suchen...'"
+                  />
+                </div>
               </div>
             </div>
 
@@ -389,11 +400,9 @@ async function handleStatusUpdate(taskId, newStatus) {
 
       <aside class="col-lg-3 sidebar p-4">
         <div class="sidebar-block mb-5">
-          <h4 class="d-flex justify-content-between align-items-center sidebar-header">
-            Mitarbeiter
-          </h4>
+          <h4 class="d-flex justify-content-between align-items-center sidebar-header">Mitarbeiter</h4>
           <ul class="list-unstyled staff-list" v-if="staff.length > 0">
-            <li v-for="name in staff" :key="name">{{ name }}</li>
+            <li v-for="name in staff" :key="name">👤 {{ name }}</li>
           </ul>
           <p v-else class="text-muted small">Keine Mitarbeiter gefunden.</p>
         </div>
@@ -499,7 +508,6 @@ async function handleStatusUpdate(taskId, newStatus) {
 </template>
 
 <style scoped>
-/* CSS bleibt unverändert */
 .dashboard-page.container { padding-top: 2rem; padding-bottom: 2rem; }
 .dashboard-wrapper {
   font-family: 'Montserrat', sans-serif;
@@ -521,6 +529,9 @@ async function handleStatusUpdate(taskId, newStatus) {
 .dashboard-title { color: #0d6efd !important; font-weight: 700; }
 .btn-custom-blue { background-color: #007BFF !important; color: white !important; }
 .btn-custom-green { background-color: #19C059 !important; color: white !important; }
+
+.search-container { max-width: 100%; }
+.search-container input:focus { border-color: #0d6efd; box-shadow: none; }
 
 .project-card {
   cursor: pointer;
