@@ -14,7 +14,6 @@ const shouldHideLoginButton = computed(() => {
 })
 
 const login = () => {
-  // absichtlich über den Router → authGuard übernimmt Login
   router.push('/dashboard')
 }
 
@@ -54,7 +53,7 @@ const logoutUser = () => {
           <ul class="navbar-nav ms-auto align-items-center">
 
             <li
-              class="nav-item ms-lg-2"
+              class="nav-item ms-lg-2 order-2 order-lg-1"
               v-if="!isAuthenticated && !shouldHideLoginButton && !isLoading"
             >
               <Button variant="accent" @click="login">
@@ -63,7 +62,7 @@ const logoutUser = () => {
             </li>
 
             <li
-              class="nav-item ms-lg-2"
+              class="nav-item ms-lg-2 order-2 order-lg-1"
               v-if="isAuthenticated && !isLoading"
             >
               <Button variant="accent" @click="logoutUser">
@@ -71,7 +70,7 @@ const logoutUser = () => {
               </Button>
             </li>
 
-            <li class="nav-item dropdown ms-lg-2 d-none d-lg-block">
+            <li class="nav-item dropdown ms-lg-2 order-1 order-lg-2">
               <Button 
                 variant="secondary"
                 class="dropdown-toggle"
@@ -87,7 +86,6 @@ const logoutUser = () => {
                     Startseite
                   </a>
                 </li>
-                
                 <li>
                   <a class="dropdown-item" href="#" @click.prevent="router.push('/dashboard')">
                     Dashboard
