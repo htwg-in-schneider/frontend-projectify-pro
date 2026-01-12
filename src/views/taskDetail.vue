@@ -2,9 +2,6 @@
 import SpecialBanner from "@/components/specialBanner.vue";
 import NavButton from "@/components/navButton.vue";
 import Button from "@/components/button.vue";
-import Navbar from "@/components/navbar.vue";
-import Footer from "@/components/footer.vue";
-
 import { ref, onMounted } from "vue";
 import { useAuth0 } from "@auth0/auth0-vue";
 

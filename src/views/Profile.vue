@@ -1,8 +1,6 @@
 <script setup>
 import { useAuth0 } from '@auth0/auth0-vue'
 import { onMounted, ref } from 'vue'
-//import Navbar from '@/components/navbar.vue'
-import Footer from '@/components/footer.vue'
 
 const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0()
 const profileData = ref(null)

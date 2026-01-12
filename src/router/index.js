@@ -5,7 +5,8 @@ import TaskCatalog from '@/views/taskCatalog.vue'
 import TaskDetail from '@/views/taskDetail.vue'
 import Profile from '@/views/Profile.vue'
 import Dashboard from '@/views/dashboard.vue'
-
+import Impressum from '../views/imprint.vue'   
+import Datenschutz from '../views/dataProtection.vue' 
 const routes = [
   {
     path: '/',
