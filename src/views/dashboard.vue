@@ -293,7 +293,7 @@ async function loadProjects() {
   loadingError.value = null;
   try {
     const token = await getAccessTokenSilently();
-    // ECHTER API CALL
+    //API CALL
     const backendProjects = await getAllProjects(token);
     projects.value = backendProjects || [];
   } catch (e) {
@@ -305,7 +305,7 @@ async function loadProjects() {
 
 async function selectProject(project) {
   selectedProject.value = project;
-  // Tasks nur laden, wenn eine echte ID vorhanden ist
+  // Tasks nur laden, wenn eine ID vorhanden ist
   if (project.id) {
     await loadTasksForProject(project.id);
   }

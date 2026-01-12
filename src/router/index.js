@@ -43,18 +43,18 @@ const routes = [
     beforeEnter: authGuard
   },
       {
-      path: '/datenschutz',
-      name: 'datenschutz',
+      path: '/dataProtection',
+      name: 'dataProtection',
       component: () => import('../views/dataProtection.vue')
     },
   {
-      path: '/impressum',
-      name: 'impressum',
+      path: '/imprint',
+      name: 'imprint',
       component: () => import('../views/imprint.vue')
     },
     {
-      path: '/kontakt',
-      name: 'kontakt',
+      path: '/contact',
+      name: 'contact',
       component: () => import('../views/contact.vue')
     }
 

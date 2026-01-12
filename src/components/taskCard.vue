@@ -1,5 +1,4 @@
 <script setup>
-// Props der Task-Karte
 const props = defineProps({
   task: {
     type: Object,

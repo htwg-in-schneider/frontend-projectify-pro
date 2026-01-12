@@ -18,11 +18,6 @@ const auth0 = createAuth0({
   cacheLocation: 'localstorage',
   useRefreshTokens: true,
 
-  /* onRedirectCallback: (appState) => {
-    setTimeout(() => {
-      router.push(appState?.targetUrl || '/')
-    }, 0)
-  } */
 })
 
 createApp(App)

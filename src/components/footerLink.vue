@@ -1,5 +1,4 @@
 <script setup>
-// Keine Imports mehr nötig, wir nutzen direkt HTML/Vue-Elemente
 </script>
 
 <template>
