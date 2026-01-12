@@ -1,7 +1,13 @@
 <script setup>
-//import Navbar from '@/components/navbar.vue'
-//import Footer from '@/components/footer.vue'
+import Navbar from '@/components/navbar.vue'
 import Button from '@/components/button.vue'
+
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+};
 </script>
 
 <template>
@@ -18,7 +24,10 @@ import Button from '@/components/button.vue'
             </p>
 
             <Button href="#" variant="accent" class="btn-lg me-2">Kostenlos starten</Button>
-            <a href="#" class="text-decoration-underline text-dark me-2">Erfahre mehr</a>
+            
+            <router-link to="/kontakt" class="text-decoration-underline text-dark me-2">
+              Erfahre mehr
+            </router-link>
           </div>
 
           <div class="col-lg-6">
@@ -92,15 +101,34 @@ import Button from '@/components/button.vue'
       </div>
     </section>
 
-    <div class="position-panda">
-      <a href="#">
-        <img src="@/assets/icons/roterPanda.png" alt="Klick mich">
-      </a>
+    <div class="position-panda" @click="scrollToTop" style="cursor: pointer;">
+      <img src="@/assets/icons/roterPanda.png" alt="Nach oben">
     </div>
 
   </main>
 
-  <Footer />
+  <footer class="py-4 bg-light mt-5 border-top">
+    <div class="container text-center">
+      <router-link to="/impressum" class="text-decoration-none mx-3 text-secondary">Impressum</router-link>
+      <router-link to="/datenschutz" class="text-decoration-none mx-3 text-secondary">Datenschutzerklärung</router-link>
+      
+      <router-link to="/kontakt" class="text-decoration-none mx-3 text-secondary">Kontakt</router-link>
+      
+      </div>
+  </footer>
+
 </template>
 
-<style scoped></style>
+<style scoped>
+.position-panda {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  transition: transform 0.2s;
+}
+
+.position-panda:hover {
+  transform: scale(1.1);
+}
+</style>

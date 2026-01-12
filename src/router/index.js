@@ -40,7 +40,23 @@ const routes = [
     component: Profile,
     meta: { requiresAuth: true },
     beforeEnter: authGuard
-  }
+  },
+      {
+      path: '/datenschutz',
+      name: 'datenschutz',
+      component: () => import('../views/dataProtection.vue')
+    },
+  {
+      path: '/impressum',
+      name: 'impressum',
+      component: () => import('../views/imprint.vue')
+    },
+    {
+      path: '/kontakt',
+      name: 'kontakt',
+      component: () => import('../views/contact.vue')
+    }
+
 ]
 
 const router = createRouter({
