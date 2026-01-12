@@ -99,5 +99,4 @@ onMounted(async () => {
       Sie sind nicht eingeloggt.
     </div>
   </div>
-  <Footer />
 </template>

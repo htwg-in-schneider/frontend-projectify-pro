@@ -101,8 +101,6 @@ async function fetchTask() {
       <NavButton variant="secondary" to="/tasks">Zurück</NavButton>
     </div>
   </section>
-
-  <Footer />
 </template>
 
 <style scoped></style>
