@@ -12,7 +12,7 @@
                   &larr; Zurück zur Übersicht
                 </button>
                 <h2 class="fw-bold mb-0 dashboard-title">
-                  {{ selectedProject ? 'FLOW 1' : 'Projekt Übersicht' }}
+                  Projekt Übersicht 
                 </h2>
               </div>
 
