@@ -2,6 +2,8 @@
 import { ref, watch, onMounted } from 'vue';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { getTaskById, getComments, addComment } from '@/api/taskService.js';
+// NEU: User Service importieren
+import { getAllUsers } from '@/api/userService.js';
 
 const props = defineProps({
   taskId: [Number, String],
@@ -9,7 +11,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['save', 'delete']);
-// isAuthenticated hinzugefügt für extra Check
 const { getAccessTokenSilently, user: authUser, isAuthenticated } = useAuth0();
 
 const loading = ref(false);
@@ -26,14 +27,25 @@ const form = ref({
   duration: 0
 });
 
-// Liste der Kommentare
+// Liste der Kommentare & Mitarbeiter
 const comments = ref([]);
+const staffList = ref([]); // NEU: Liste für das Dropdown
 
-// Helper: Datum formatieren (YYYY-MM-DD für Input-Feld)
+// Helper: Datum formatieren
 function formatDate(dateStr) {
   if (!dateStr) return '';
   return new Date(dateStr).toISOString().split('T')[0];
 }
+
+// NEU: Mitarbeiter beim Start laden
+onMounted(async () => {
+  try {
+    const token = await getAccessTokenSilently();
+    staffList.value = await getAllUsers(token);
+  } catch (e) {
+    console.error("Fehler beim Laden der Mitarbeiter:", e);
+  }
+});
 
 // Daten laden (Aufgabe + Kommentare)
 async function loadData() {
@@ -47,7 +59,7 @@ async function loadData() {
     const task = await getTaskById(token, props.taskId);
     form.value = {
       title: task.title || '',
-      user: task.user || '',
+      user: task.user || '', // Setzt den User, der im Dropdown ausgewählt sein soll
       status: task.status || 'In Bearbeitung',
       startDate: formatDate(task.startDate),
       endDate: formatDate(task.endDate),
@@ -76,7 +88,7 @@ async function fetchComments(token) {
   }
 }
 
-// Watcher: Wenn sich die Task-ID ändert (anderer Klick), neu laden
+// Watcher: Wenn sich die Task-ID ändert
 watch(() => props.taskId, (newId) => {
   if (newId) loadData();
 }, { immediate: true });
@@ -88,7 +100,6 @@ async function submitComment() {
   try {
     const token = await getAccessTokenSilently();
     
-    // Verbesserte Namensfindung: Name > Nickname > Email > Unbekannt
     let currentUserName = 'Unbekannt';
     if (authUser.value) {
         currentUserName = authUser.value.name || authUser.value.nickname || authUser.value.email || 'Unbekannt';
@@ -97,11 +108,11 @@ async function submitComment() {
     await addComment(token, {
       userName: currentUserName, 
       text: newComment.value,
-      task: { id: props.taskId } // Verknüpfung zur Aufgabe
+      task: { id: props.taskId }
     });
 
-    newComment.value = ''; // Eingabe leeren
-    await fetchComments(token); // Liste aktualisieren
+    newComment.value = '';
+    await fetchComments(token);
 
   } catch (e) {
     console.error(e);
@@ -136,8 +147,14 @@ defineExpose({ save });
       <div class="row mb-3">
         <div class="col-md-6">
           <label class="form-label fw-bold">Zugewiesen an</label>
-          <input class="form-control" v-model="form.user" />
+          <select class="form-select" v-model="form.user">
+            <option value="">Nicht zugewiesen</option>
+            <option v-for="u in staffList" :key="u.id" :value="u.name">
+              {{ u.name }}
+            </option>
+          </select>
         </div>
+        
         <div class="col-md-6">
           <label class="form-label fw-bold">Status</label>
           <select class="form-select" v-model="form.status">
