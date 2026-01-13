@@ -170,6 +170,6 @@ onMounted(loadProfile)
 
 <style scoped>
 .bg-accent {
-  background-color: #0d6efd; /* Oder deine spezifische Akzentfarbe */
+  background-color: #0d6efd; 
 }
 </style>
