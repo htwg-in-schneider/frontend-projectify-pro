@@ -7,18 +7,26 @@ import { createAuth0 } from '@auth0/auth0-vue'
 
 const pinia = createPinia()
 
-const auth0 = createAuth0({
-  domain: import.meta.env.VITE_AUTH0_DOMAIN,
-  clientId: import.meta.env.VITE_AUTH0_CLIENT_ID,
-  authorizationParams: {
-    audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-    redirect_uri: window.location.origin
-  },
+// const auth0 = createAuth0({
+//   domain: import.meta.env.VITE_AUTH0_DOMAIN,
+//   clientId: import.meta.env.VITE_AUTH0_CLIENT_ID,
+//   authorizationParams: {
+//     audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+//     redirect_uri: window.location.origin
+//   },
 
-  cacheLocation: 'localstorage',
-  useRefreshTokens: true,
+  const auth0 = createAuth0({
+    domain: import.meta.env.VITE_AUTH0_DOMAIN,
+    clientId: import.meta.env.VITE_AUTH0_CLIENT_ID,
+    authorizationParams: {
+      audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+      redirect_uri: window.location.origin + window.location.pathname
+    },
+    
+    cacheLocation: 'localstorage',
+    useRefreshTokens: true,
+  })
 
-})
 
 createApp(App)
   .use(router)
