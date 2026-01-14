@@ -58,7 +58,7 @@ const logoutUser = () => {
 <template>
   <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
-      <div class="container">
+      <div class="container-fluid px-4 px-lg-5">
 
         <router-link class="navbar-brand fw-bold text-accent" to="/">
           <img

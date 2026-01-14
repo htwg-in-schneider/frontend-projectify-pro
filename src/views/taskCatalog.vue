@@ -166,30 +166,30 @@ async function onDeleteTask() {
 </script>
 
 <template>
-  <div class="dashboard-page container">
+  <div class="dashboard-page container-fluid px-4 px-lg-5">
     <div class="row">
 
-      <main class="col-lg-9 kanban-area-wrapper p-0">
+      <main class="col-lg-12 kanban-area-wrapper p-0">
         <div class="dashboard-wrapper p-4 p-md-5">
 
-          <div class="d-flex justify-content-between align-items-center mb-4 dashboard-header-container">
-            <h2 class="fw-bold mb-0 dashboard-title">Aufgabenübersicht</h2>
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 dashboard-header-container">
+            <h2 class="fw-bold mb-0 dashboard-title me-3">Aufgabenübersicht</h2>
 
-            <div class="d-flex flex-wrap align-items-center gap-3">
-              <Button variant="primary" class="btn-custom-blue">
+            <div class="d-flex flex-nowrap align-items-center gap-2">
+              <Button variant="primary" class="btn-custom-blue text-nowrap">
                 Projekt erstellen
               </Button>
 
               <Button
                 v-if="isAdmin"
                 variant="primary"
-                class="btn-custom-blue"
+                class="btn-custom-blue text-nowrap"
                 @click="openCreateTask"
               >
                 Neue Aufgabe
               </Button>
 
-              <Button variant="success" class="btn-custom-green">
+              <Button variant="success" class="btn-custom-green text-nowrap">
                 Rechnung erstellen
               </Button>
             </div>
@@ -222,8 +222,6 @@ async function onDeleteTask() {
 
         </div>
       </main>
-
-      <aside class="col-lg-3 sidebar p-4 invisible-sidebar"></aside>
 
     </div>
   </div>
@@ -262,7 +260,7 @@ async function onDeleteTask() {
 </template>
 
 <style scoped>
-.dashboard-page.container {
+.dashboard-page {
   padding-top: 2rem;
   padding-bottom: 2rem;
 }
