@@ -11,7 +11,7 @@
         <a href="mailto:projectify.pro@web.de" class="nav-link px-3 text-secondary">Kontakt</a>
       </nav>
 
-      <p class="text-muted small mb-0">&copy; 2025 Projectify Pro. Alle Rechte vorbehalten.</p>
+      <p class="text-muted small mb-0">&copy; 2026 Projectify Pro. Alle Rechte vorbehalten.</p>
     </div>
   </footer>
 </template>

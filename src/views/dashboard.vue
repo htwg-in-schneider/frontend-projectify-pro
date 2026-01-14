@@ -160,11 +160,13 @@ const filteredTasks = computed(() => {
 // --- ACTIONS ---
 
 function openEditProject(project) {
+  if (!isAdmin.value) return; 
   editProjectData.value = { ...project };
   showEditProject.value = true;
 }
 
 async function submitEditProject() {
+  if (!isAdmin.value) return; 
   if (!editProjectData.value.name) return alert("Name fehlt");
   try {
     const token = await getAccessTokenSilently();
@@ -180,6 +182,7 @@ async function submitEditProject() {
 }
 
 async function deleteProjectById() {
+  if (!isAdmin.value) return;
   if (!confirm("Möchten Sie dieses Projekt wirklich löschen? Alle Aufgaben darin werden ebenfalls gelöscht.")) return;
   try {
     const token = await getAccessTokenSilently();
@@ -200,6 +203,7 @@ function getProjectName(id) {
 }
 
 async function calculateInvoice() {
+  if (!isAdmin.value) return; // Nur Admin darf Rechnung erstellen
   let tasksToProcess = [];
   if (!selectedProject.value) {
     try {
@@ -233,12 +237,14 @@ async function calculateInvoice() {
 }
 
 function openCreateProject() {
+  if (!isAdmin.value) return;
   createProjectFormBuffer = null;
   showCreateProject.value = true;
 }
 function onProjectFormInput(body) { createProjectFormBuffer = body; }
 
 async function submitCreateProject() {
+  if (!isAdmin.value) return;
   createProjectForm.value?.submitForm();
   if (!createProjectFormBuffer?.title) return alert("Titel fehlt");
 
@@ -277,12 +283,12 @@ async function submitCreateTask() {
 }
 
 function openEditTask(id) {
-  // Zugriff erlaubt für alle, um Kommentare zu lesen/schreiben
   selectedTaskId.value = id;
   showEdit.value = true;
 }
 
 async function saveTask(body) {
+  // ÄNDERUNG: if (!isAdmin.value) return; ENTFERNT, damit Status gespeichert werden kann
   try {
     const token = await getAccessTokenSilently();
     const payload = { 
@@ -300,6 +306,7 @@ async function saveTask(body) {
 }
 
 async function deleteTaskById() {
+  if (!isAdmin.value) return; 
   try {
     const token = await getAccessTokenSilently();
     await deleteTask(token, selectedTaskId.value);
@@ -325,11 +332,11 @@ async function deleteTaskById() {
                     &larr; Zurück zur Übersicht
                   </button>
                   <h2 v-if="!selectedProject" class="fw-bold mb-0 dashboard-title">Projekt Übersicht</h2>
-                  <h2 v-else class="fw-bold mb-0 dashboard-title">{{ selectedProject.name }}</h2>
+                  <h2 v-else class="fw-bold mb-0 dashboard-title">Aufgaben Übersicht</h2>
                 </div>
 
                 <div class="d-flex flex-wrap align-items-center">
-                  <Button v-if="!selectedProject" variant="primary" class="me-2 btn-custom-blue" @click="openCreateProject">
+                  <Button v-if="!selectedProject && isAdmin" variant="primary" class="me-2 btn-custom-blue" @click="openCreateProject">
                     Neues Projekt
                   </Button>
                   <Button v-if="selectedProject && isAdmin" variant="secondary" class="me-2" @click="openEditProject(selectedProject)">
@@ -338,7 +345,7 @@ async function deleteTaskById() {
                   <Button v-if="selectedProject && isAdmin" variant="primary" class="me-2 btn-custom-blue" @click="openCreateTask">
                     Aufgabe erstellen
                   </Button>
-                  <Button variant="success" class="btn-custom-green" @click="calculateInvoice">
+                  <Button v-if="isAdmin" variant="success" class="btn-custom-green" @click="calculateInvoice">
                     Rechnung erstellen
                   </Button>
                 </div>
@@ -433,8 +440,8 @@ async function deleteTaskById() {
       <EditTaskForm ref="editForm" :taskId="selectedTaskId" :backend="true" :isAdmin="isAdmin" @save="saveTask" @delete="deleteTaskById" />
       <template #footer>
         <button v-if="isAdmin" class="btn btn-danger" @click="deleteTaskById">Löschen</button>
-        <button v-if="isAdmin" class="btn btn-success" @click="editForm?.save()">Speichern</button>
-        <button v-else class="btn btn-secondary" @click="showEdit = false">Schließen</button>
+        <button class="btn btn-secondary" @click="showEdit = false">Abbrechen</button>
+        <button class="btn btn-success" @click="editForm?.save()">Speichern</button>
       </template>
     </TaskModal>
 

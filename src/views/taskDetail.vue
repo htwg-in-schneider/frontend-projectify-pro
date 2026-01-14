@@ -102,7 +102,6 @@ function openCreateTask() {
 
 /* CLICK ON CARD */
 function onTaskClick(taskId) {
-  // Immer das Modal öffnen, damit auch Mitarbeiter Kommentare sehen/schreiben können
   selectedTaskId.value = taskId;
   showEdit.value = true;
 }
@@ -131,7 +130,7 @@ async function submitCreateTask() {
 }
 
 async function onSaveTask(body) {
-  if (!isAdmin.value) return;
+  // ÄNDERUNG: Status-Änderung für alle erlauben
   try {
     const token = await getAccessTokenSilently();
     await updateTask(token, selectedTaskId.value, body);
@@ -144,7 +143,7 @@ async function onSaveTask(body) {
 }
 
 async function onDeleteTask() {
-  if (!isAdmin.value) return;
+  if (!isAdmin.value) return; 
   try {
     const token = await getAccessTokenSilently();
     await deleteTask(token, selectedTaskId.value);
@@ -181,7 +180,7 @@ async function onDeleteTask() {
                 Neue Aufgabe
               </Button>
 
-              <Button variant="success" class="mb-2 mb-sm-0 btn-custom-green">
+              <Button v-if="isAdmin" variant="success" class="mb-2 mb-sm-0 btn-custom-green">
                 Rechnung erstellen
               </Button>
             </div>
@@ -249,8 +248,8 @@ async function onDeleteTask() {
 
     <template #footer>
       <button v-if="isAdmin" class="btn btn-danger" @click="onDeleteTask()">Löschen</button>
-      <button v-if="isAdmin" class="btn btn-success" @click="$refs.editForm.save()">Speichern</button>
-      <button v-else class="btn btn-secondary" @click="showEdit = false">Schließen</button>
+      <button class="btn btn-secondary" @click="showEdit = false">Abbrechen</button>
+      <button class="btn btn-success" @click="$refs.editForm.save()">Speichern</button>
     </template>
   </TaskModal>
 </template>

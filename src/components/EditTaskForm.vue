@@ -7,7 +7,7 @@ import { getAllUsers } from '@/api/userService.js';
 const props = defineProps({
   taskId: [Number, String],
   backend: Boolean,
-  isAdmin: Boolean // NEU: Steuert die Bearbeitbarkeit der Felder
+  isAdmin: Boolean // Steuert Schreibrechte für Stammdaten
 });
 
 const emit = defineEmits(['save', 'delete']);
@@ -20,7 +20,7 @@ const newComment = ref('');
 // Speicher für Validierungsfehler
 const errors = ref({});
 const showErrorMessage = ref(false);
-const commentError = ref(false); 
+const commentError = ref(false);
 
 // Formular-Daten
 const form = ref({
@@ -111,7 +111,6 @@ async function submitComment() {
   }
 }
 
-// Validierungsfunktion gemäß Punkt c des Aufgabenblatts
 function validateForm() {
   errors.value = {};
   let isValid = true;
@@ -199,7 +198,6 @@ defineExpose({ save });
             class="form-select" 
             :class="{'is-invalid': errors.status}" 
             v-model="form.status"
-            :disabled="!isAdmin"
           >
             <option>Offen</option>
             <option>In Bearbeitung</option>
