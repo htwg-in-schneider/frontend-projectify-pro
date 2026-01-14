@@ -13,8 +13,8 @@ const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
 const filteredUsers = computed(() => {
   return users.value.filter(u => 
-    u.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchQuery.value.toLowerCase())
+    (u.name && u.name.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+    (u.email && u.email.toLowerCase().includes(searchQuery.value.toLowerCase()))
   )
 })
 
@@ -33,61 +33,60 @@ async function fetchUsers() {
 // --- NAME ÄNDERN ---
 async function editName(user) {
   const newName = prompt(`Neuen Namen für ${user.email} eingeben:`, user.name)
-  
-  if (newName === null || newName.trim() === "" || newName === user.name) {
-    return 
-  }
-
+  if (newName === null || newName.trim() === "" || newName === user.name) return 
   await updateUser(user, { name: newName }, 'Name erfolgreich aktualisiert')
 }
 
 // --- E-MAIL ÄNDERN ---
 async function editEmail(user) {
   const newEmail = prompt(`Neue E-Mail für ${user.name} eingeben:`, user.email)
-  
-  if (newEmail === null || newEmail.trim() === "" || newEmail === user.email) {
-    return 
-  }
-
+  if (newEmail === null || newEmail.trim() === "" || newEmail === user.email) return 
   await updateUser(user, { email: newEmail }, 'E-Mail erfolgreich aktualisiert')
 }
 
 // --- STATUS (ROLLE) ÄNDERN ---
 async function toggleRole(user) {
-  // Rolle wechseln: Wenn ADMIN, dann USER, sonst ADMIN
   const newRole = user.role === 'ADMIN' ? 'USER' : 'ADMIN'
-  
-  if (!confirm(`Soll der Nutzer "${user.name}" wirklich die Rolle "${newRole}" erhalten?`)) {
-    return
-  }
-
+  if (!confirm(`Soll der Nutzer "${user.name}" wirklich die Rolle "${newRole}" erhalten?`)) return
   await updateUser(user, { role: newRole }, `Status erfolgreich auf ${newRole} geändert`)
 }
 
-// Hilfsfunktion für das Update (vermeidet Code-Duplizierung)
+// --- ZENTRALE UPDATE-FUNKTION ---
 async function updateUser(user, changes, successMessage) {
   try {
     const token = await getAccessTokenSilently()
+    
+    // KORREKTUR: 'oauthId' hinzufügen!
+    // Wir bauen das Objekt explizit zusammen, um 'createdAt'/'updatedAt' (Timestamps)
+    // und 'password' wegzulassen, aber ALLE Pflichtfelder mitzusenden.
+    const payload = {
+      id: user.id,
+      oauthId: user.oauthId, // <--- WICHTIG: Identifikation darf nicht fehlen
+      name: changes.name !== undefined ? changes.name : user.name,
+      email: changes.email !== undefined ? changes.email : user.email,
+      role: changes.role !== undefined ? changes.role : user.role
+    }
+
     const response = await fetch(`${baseUrl}/api/users/${user.id}`, {
       method: 'PUT',
       headers: { 
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}` 
       },
-      body: JSON.stringify({
-        ...user,
-        ...changes
-      })
+      body: JSON.stringify(payload)
     })
 
     if (response.ok) {
       alert(successMessage)
       await fetchUsers()
     } else {
-      alert('Fehler beim Aktualisieren: ' + response.status)
+      // Fehlertext auslesen für besseres Debugging
+      const errText = await response.text()
+      console.error('Update Fehler Backend:', errText)
+      alert(`Fehler beim Aktualisieren: ${response.status}\nServer-Meldung: ${errText}`)
     }
   } catch (e) {
-    console.error("Fehler:", e)
+    console.error("Netzwerkfehler:", e)
     alert('Verbindung zum Server fehlgeschlagen')
   }
 }
@@ -111,6 +110,7 @@ async function deleteUser(id) {
     }
   } catch (e) {
     console.error("Fehler:", e)
+    alert("Löschen fehlgeschlagen")
   }
 }
 
@@ -180,8 +180,11 @@ onMounted(fetchUsers)
 .table-dark {
   background-color: #212529;
 }
-
 .btn {
   white-space: nowrap;
+}
+.italic {
+  font-style: italic;
+  color: #6c757d;
 }
 </style>

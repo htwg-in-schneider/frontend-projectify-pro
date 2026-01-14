@@ -20,6 +20,7 @@ const errors = ref({});
 const showErrorMessage = ref(false);
 const commentError = ref(false);
 
+// Formular-Objekt enthält nur diese Felder -> Keine Timestamps
 const form = ref({
   title: '',
   user: '',
@@ -33,11 +34,18 @@ const form = ref({
 const comments = ref([]);
 const staffList = ref([]);
 
-// Verbesserte Datums-Formatierung (vermeidet Zeitzonen-Verschiebungen)
+// WICHTIG: Entfernt Zeitstempel aus dem Datumstring
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  if (typeof dateStr === 'string') return dateStr.split('T')[0];
+  // Falls schon String mit 'T', schneiden wir alles ab T ab
+  if (typeof dateStr === 'string' && dateStr.includes('T')) {
+      return dateStr.split('T')[0];
+  }
+  // Falls schon sauberer String (YYYY-MM-DD), behalten wir ihn
+  if (typeof dateStr === 'string') return dateStr; 
+  
   try {
+    // Falls Date-Objekt, konvertieren wir sicher in YYYY-MM-DD
     return new Date(dateStr).toISOString().split('T')[0];
   } catch (e) {
     return '';
@@ -62,12 +70,15 @@ async function loadData() {
   try {
     const token = await getAccessTokenSilently();
     const task = await getTaskById(token, props.taskId);
+    
+    // Hier wird das Formular neu befüllt.
+    // Durch die explizite Zuweisung werden Felder wie 'createdAt' nicht übernommen.
     form.value = {
       title: task.title || '',
       user: task.user || '',
       status: task.status || 'In Bearbeitung',
-      startDate: formatDate(task.startDate),
-      endDate: formatDate(task.endDate),
+      startDate: formatDate(task.startDate), // Timestamp entfernen
+      endDate: formatDate(task.endDate),     // Timestamp entfernen
       duration: task.duration || 0,
       projectId: task.projectId 
     };
@@ -138,6 +149,7 @@ function validateForm() {
 function save() {
   if (validateForm()) {
     showErrorMessage.value = false;
+    // sendet nur die in form definierten Felder (keine Timestamps)
     emit('save', { ...form.value });
   }
 }
