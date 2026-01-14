@@ -183,3 +183,6 @@ Die Rechnung wird als Übersicht dargestellt und dient als Grundlage für die Ab
 
 - **Asynchrone Backend-Kommunikation:**  
   Die Kommunikation mit dem Spring-Boot-Backend erfolgt vollständig asynchron. Dadurch bleibt die Benutzeroberfläche auch während laufender Datenabfragen reaktionsfähig (Non-blocking UI).
+
+  ### Hard Coding
+  Die Stundensätze für die Rechnungserstellung sind Hard gecoded und jeweils für 100€ pro Stunde festgelegt.

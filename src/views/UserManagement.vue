@@ -30,14 +30,42 @@ async function fetchUsers() {
   }
 }
 
-// --- NAME ÄNDERN (Stammdaten verändern laut Blatt 5b) ---
+// --- NAME ÄNDERN ---
 async function editName(user) {
   const newName = prompt(`Neuen Namen für ${user.email} eingeben:`, user.name)
   
   if (newName === null || newName.trim() === "" || newName === user.name) {
-    return // Abbrechen wenn leer oder unverändert
+    return 
   }
 
+  await updateUser(user, { name: newName }, 'Name erfolgreich aktualisiert')
+}
+
+// --- E-MAIL ÄNDERN ---
+async function editEmail(user) {
+  const newEmail = prompt(`Neue E-Mail für ${user.name} eingeben:`, user.email)
+  
+  if (newEmail === null || newEmail.trim() === "" || newEmail === user.email) {
+    return 
+  }
+
+  await updateUser(user, { email: newEmail }, 'E-Mail erfolgreich aktualisiert')
+}
+
+// --- STATUS (ROLLE) ÄNDERN ---
+async function toggleRole(user) {
+  // Rolle wechseln: Wenn ADMIN, dann USER, sonst ADMIN
+  const newRole = user.role === 'ADMIN' ? 'USER' : 'ADMIN'
+  
+  if (!confirm(`Soll der Nutzer "${user.name}" wirklich die Rolle "${newRole}" erhalten?`)) {
+    return
+  }
+
+  await updateUser(user, { role: newRole }, `Status erfolgreich auf ${newRole} geändert`)
+}
+
+// Hilfsfunktion für das Update (vermeidet Code-Duplizierung)
+async function updateUser(user, changes, successMessage) {
   try {
     const token = await getAccessTokenSilently()
     const response = await fetch(`${baseUrl}/api/users/${user.id}`, {
@@ -48,12 +76,12 @@ async function editName(user) {
       },
       body: JSON.stringify({
         ...user,
-        name: newName
+        ...changes
       })
     })
 
     if (response.ok) {
-      alert('Name erfolgreich aktualisiert')
+      alert(successMessage)
       await fetchUsers()
     } else {
       alert('Fehler beim Aktualisieren: ' + response.status)
@@ -64,7 +92,7 @@ async function editName(user) {
   }
 }
 
-// --- LÖSCHEN FUNKTION (Stammdaten löschen laut Blatt 5b) ---
+// --- LÖSCHEN FUNKTION ---
 async function deleteUser(id) {
   if (!confirm('Möchten Sie diesen Nutzer wirklich löschen?')) return
 
@@ -111,24 +139,30 @@ onMounted(fetchUsers)
           <tr>
             <th>Name</th>
             <th>E-Mail (Login)</th>
-            <th>Status</th>
-            <th>Aktionen</th>
+            <th>Status (Rolle)</th>
+            <th style="min-width: 350px;">Aktionen</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="u in filteredUsers" :key="u.id">
-            <td>{{ u.name }}</td>
-            <td class="text-muted">{{ u.email }}</td>
-            <td>
+            <td class="align-middle">{{ u.name }}</td>
+            <td class="text-muted align-middle">{{ u.email }}</td>
+            <td class="align-middle">
               <span :class="u.role === 'ADMIN' ? 'badge bg-danger' : 'badge bg-secondary'">
                 {{ u.role }}
               </span>
             </td>
-            <td>
-              <button @click="editName(u)" class="btn btn-sm btn-outline-primary me-2">
+            <td class="align-middle">
+              <button @click="editName(u)" class="btn btn-sm btn-outline-primary me-2 mb-1">
                 Name ändern
               </button>
-              <button @click="deleteUser(u.id)" class="btn btn-sm btn-outline-danger">
+              <button @click="editEmail(u)" class="btn btn-sm btn-outline-secondary me-2 mb-1">
+                E-Mail ändern
+              </button>
+              <button @click="toggleRole(u)" class="btn btn-sm btn-outline-warning me-2 mb-1">
+                Status ändern
+              </button>
+              <button @click="deleteUser(u.id)" class="btn btn-sm btn-outline-danger mb-1">
                 Löschen
               </button>
             </td>
@@ -145,5 +179,9 @@ onMounted(fetchUsers)
 <style scoped>
 .table-dark {
   background-color: #212529;
+}
+
+.btn {
+  white-space: nowrap;
 }
 </style>

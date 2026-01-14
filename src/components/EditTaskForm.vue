@@ -7,7 +7,7 @@ import { getAllUsers } from '@/api/userService.js';
 const props = defineProps({
   taskId: [Number, String],
   backend: Boolean,
-  isAdmin: Boolean // Wichtig für Berechtigungen
+  isAdmin: Boolean 
 });
 
 const emit = defineEmits(['save', 'delete']);
