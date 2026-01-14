@@ -17,7 +17,7 @@ function submitForm() {
     text: text.value
   });
 
-  // Felder zurücksetzen
+  // reset
   userName.value = "";
   text.value = "";
 }

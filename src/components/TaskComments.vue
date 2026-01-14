@@ -57,15 +57,15 @@ async function saveComment(data) {
 
     <h5 class="fw-bold mb-3">Kommentare</h5>
 
-    <!-- Laden -->
+    <!-- loading -->
     <div v-if="loading" class="text-muted">Kommentare werden geladen...</div>
 
-    <!-- Keine Kommentare -->
+    <!-- no comments -->
     <div v-else-if="comments.length === 0" class="text-muted mb-3">
       Keine Kommentare vorhanden.
     </div>
 
-    <!-- Kommentar-Liste -->
+    <!-- commend list -->
     <ul v-else class="list-group mb-3">
       <li
         v-for="c in comments"
@@ -77,7 +77,7 @@ async function saveComment(data) {
       </li>
     </ul>
 
-    <!-- Formular zum neuen Kommentar -->
+    <!-- form for new comments -->
     <CreateCommentForm @submit="saveComment" />
   </div>
 </template>

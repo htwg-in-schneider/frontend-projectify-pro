@@ -33,7 +33,7 @@ const form = ref({
 const comments = ref([]);
 const staffList = ref([]);
 
-// Bereinigt das Datum (entfernt Zeit/Timestamp)
+// clean date
 function formatDate(dateStr) {
   if (!dateStr) return '';
   if (typeof dateStr === 'string' && dateStr.includes('T')) {
@@ -67,7 +67,6 @@ async function loadData() {
     const token = await getAccessTokenSilently();
     const task = await getTaskById(token, props.taskId);
     
-    // Formular befüllen ohne Timestamps oder ungewollte Felder
     form.value = {
       title: task.title || '',
       user: task.user || '',
@@ -144,7 +143,7 @@ function validateForm() {
 function save() {
   if (validateForm()) {
     showErrorMessage.value = false;
-    // Hier wird das bereinigte Formular-Objekt gesendet
+    // clean form
     emit('save', { ...form.value });
   }
 }

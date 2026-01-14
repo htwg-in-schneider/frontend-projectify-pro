@@ -30,7 +30,6 @@ const props = defineProps({
     <slot />
   </router-link>
 
-  <!-- klassischer link -->
   <a
     v-else-if="href"
     :href="href"
@@ -43,7 +42,6 @@ const props = defineProps({
     <slot />
   </a>
 
-  <!-- echter Button -->
   <button
     v-else
     class="btn"

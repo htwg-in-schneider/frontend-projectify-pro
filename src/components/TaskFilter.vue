@@ -6,7 +6,7 @@ const emit = defineEmits(["filter-change"]);
 const title = ref("");
 const status = ref("");
 
-// Status aus Backend
+// status backend
 const statusOptions = [
   { value: "", label: "Alle" },
   { value: "In Bearbeitung", label: "In Bearbeitung" },
@@ -27,7 +27,7 @@ function applyFilter() {
 
     <div class="row g-3">
 
-      <!-- Titel-Suche -->
+      <!-- title searching -->
       <div class="col-md-6">
         <label class="form-label">Titel suchen</label>
         <input 
@@ -39,7 +39,7 @@ function applyFilter() {
         >
       </div>
 
-      <!-- Status Dropdown -->
+      <!-- status dropdown -->
       <div class="col-md-6">
         <label class="form-label">Status</label>
         <select 

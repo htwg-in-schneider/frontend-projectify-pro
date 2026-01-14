@@ -17,7 +17,7 @@
 
 <style scoped>
 .nav-link:hover {
-  color: var(--bs-primary) !important; /* Blauer Hover-Effekt */
+  color: var(--bs-primary) !important;
   text-decoration: underline;
 }
 </style>

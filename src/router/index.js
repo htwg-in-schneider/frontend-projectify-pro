@@ -31,7 +31,7 @@ const routes = [
   },
 
   { 
-    // NEU: Admin-Nutzerverwaltung
+    // admin user management
     path: '/admin/users', 
     name: 'user-management', 
     component: UserManagement, 

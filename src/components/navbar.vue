@@ -14,7 +14,7 @@ const shouldHideLoginButton = computed(() => {
   return route.meta.hideLoginButton
 })
 
-// Lädt die Rollen-Info aus deinem Backend
+// load user role from backend
 async function loadUserRole() {
   if (isAuthenticated.value) {
     try {
@@ -35,7 +35,7 @@ async function loadUserRole() {
   }
 }
 
-// Sobald der Login fertig ist, Rolle laden
+// watch for auth changes
 watch(isAuthenticated, (newVal) => {
   if (newVal) loadUserRole()
 })
