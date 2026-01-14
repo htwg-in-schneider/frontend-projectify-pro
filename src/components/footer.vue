@@ -18,7 +18,7 @@
 
 <style scoped>
 .nav-link:hover {
-  color: #000 !important; /* Wird beim Drüberfahren schwarz */
+  color: #000 !important; 
   text-decoration: underline;
 }
 </style>

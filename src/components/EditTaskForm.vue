@@ -6,7 +6,8 @@ import { getAllUsers } from '@/api/userService.js';
 
 const props = defineProps({
   taskId: [Number, String],
-  backend: Boolean
+  backend: Boolean,
+  isAdmin: Boolean // NEU: Steuert die Bearbeitbarkeit der Felder
 });
 
 const emit = defineEmits(['save', 'delete']);
@@ -19,7 +20,7 @@ const newComment = ref('');
 // Speicher für Validierungsfehler
 const errors = ref({});
 const showErrorMessage = ref(false);
-const commentError = ref(false); // Neu: Visueller Fehler für Kommentare
+const commentError = ref(false); 
 
 // Formular-Daten
 const form = ref({
@@ -105,7 +106,6 @@ async function submitComment() {
     newComment.value = '';
     await fetchComments(token);
   } catch (e) {
-    // KEIN alert() mehr. Wir loggen den Fehler und zeigen einen Hinweis im UI.
     console.error("Kommentar konnte nicht gesendet werden:", e);
     commentError.value = true;
   }
@@ -170,7 +170,8 @@ defineExpose({ save });
           class="form-control" 
           :class="{'is-invalid': errors.title}" 
           v-model="form.title" 
-          placeholder="Aufgaben Titel" 
+          placeholder="Aufgaben Titel"
+          :disabled="!isAdmin" 
         />
         <div class="invalid-feedback">{{ errors.title }}</div>
       </div>
@@ -182,6 +183,7 @@ defineExpose({ save });
             class="form-select" 
             :class="{'is-invalid': errors.user}"
             v-model="form.user"
+            :disabled="!isAdmin"
           >
             <option value="">Bitte wählen...</option>
             <option v-for="u in staffList" :key="u.id" :value="u.name">
@@ -197,6 +199,7 @@ defineExpose({ save });
             class="form-select" 
             :class="{'is-invalid': errors.status}" 
             v-model="form.status"
+            :disabled="!isAdmin"
           >
             <option>Offen</option>
             <option>In Bearbeitung</option>
@@ -209,11 +212,11 @@ defineExpose({ save });
       <div class="row mb-3">
         <div class="col-md-4">
           <label class="form-label fw-bold small text-uppercase text-muted">Startdatum</label>
-          <input type="date" class="form-control" v-model="form.startDate" />
+          <input type="date" class="form-control" v-model="form.startDate" :disabled="!isAdmin" />
         </div>
         <div class="col-md-4">
           <label class="form-label fw-bold small text-uppercase text-muted">Enddatum</label>
-          <input type="date" class="form-control" v-model="form.endDate" />
+          <input type="date" class="form-control" v-model="form.endDate" :disabled="!isAdmin" />
         </div>
         <div class="col-md-4">
           <label class="form-label fw-bold small text-uppercase text-muted">Dauer (Std) *</label>
@@ -223,6 +226,7 @@ defineExpose({ save });
             class="form-control" 
             :class="{'is-invalid': errors.duration}" 
             v-model="form.duration" 
+            :disabled="!isAdmin"
           />
           <div class="invalid-feedback">{{ errors.duration }}</div>
         </div>

@@ -277,7 +277,7 @@ async function submitCreateTask() {
 }
 
 function openEditTask(id) {
-  if (!isAdmin.value) return; 
+  // Zugriff erlaubt für alle, um Kommentare zu lesen/schreiben
   selectedTaskId.value = id;
   showEdit.value = true;
 }
@@ -430,10 +430,11 @@ async function deleteTaskById() {
     </TaskModal>
 
     <TaskModal :show="showEdit" title="Aufgabe bearbeiten" @close="showEdit = false">
-      <EditTaskForm ref="editForm" :taskId="selectedTaskId" :backend="true" @save="saveTask" @delete="deleteTaskById" />
+      <EditTaskForm ref="editForm" :taskId="selectedTaskId" :backend="true" :isAdmin="isAdmin" @save="saveTask" @delete="deleteTaskById" />
       <template #footer>
-        <button class="btn btn-danger" @click="deleteTaskById">Löschen</button>
-        <button class="btn btn-success" @click="editForm?.save()">Speichern</button>
+        <button v-if="isAdmin" class="btn btn-danger" @click="deleteTaskById">Löschen</button>
+        <button v-if="isAdmin" class="btn btn-success" @click="editForm?.save()">Speichern</button>
+        <button v-else class="btn btn-secondary" @click="showEdit = false">Schließen</button>
       </template>
     </TaskModal>
 

@@ -102,12 +102,9 @@ function openCreateTask() {
 
 /* CLICK ON CARD */
 function onTaskClick(taskId) {
-  if (isAdmin.value) {
-    selectedTaskId.value = taskId;
-    showEdit.value = true;
-  } else {
-    router.push({ name: 'task-detail', params: { id: taskId } });
-  }
+  // Immer das Modal öffnen, damit auch Mitarbeiter Kommentare sehen/schreiben können
+  selectedTaskId.value = taskId;
+  showEdit.value = true;
 }
 
 /* CREATE */
@@ -245,13 +242,15 @@ async function onDeleteTask() {
       ref="editForm"
       :taskId="selectedTaskId"
       :backend="true"
+      :isAdmin="isAdmin"
       @save="onSaveTask"
       @delete="onDeleteTask"
     />
 
     <template #footer>
-      <button class="btn btn-danger" @click="onDeleteTask()">Löschen</button>
-      <button class="btn btn-success" @click="$refs.editForm.save()">Speichern</button>
+      <button v-if="isAdmin" class="btn btn-danger" @click="onDeleteTask()">Löschen</button>
+      <button v-if="isAdmin" class="btn btn-success" @click="$refs.editForm.save()">Speichern</button>
+      <button v-else class="btn btn-secondary" @click="showEdit = false">Schließen</button>
     </template>
   </TaskModal>
 </template>
