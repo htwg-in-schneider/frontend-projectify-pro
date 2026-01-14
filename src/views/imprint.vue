@@ -29,7 +29,7 @@ onMounted(() => {
         <h2 class="h5 mt-4">Kontakt</h2>
         <p>
           Telefon: +49 (0) 123_BitteNichtAnrufen<br>
-          E-Mail: kontakt@projectify-pro.de
+          E-Mail: projectify.pro@web.de
         </p>
 
         <h2 class="h5 mt-4">Haftung für Inhalte</h2>

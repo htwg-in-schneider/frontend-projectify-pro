@@ -46,7 +46,7 @@ onMounted(() => {
           Projectify Pro Team<br>
           Alfred-Wachtel-Str. 8<br>
           78462 Konstanz<br>
-          E-Mail: kontakt@projectify-pro.de
+          E-Mail: projectify.pro@web.de
         </p>
 
         <h3 class="h6 mt-3">Widerruf Ihrer Einwilligung zur Datenverarbeitung</h3>

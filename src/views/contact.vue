@@ -4,7 +4,7 @@ import { reactive } from 'vue';
 const form = reactive({ subject: '', message: '' });
 
 const sendEmail = () => {
-  const email = 'kontakt@beispiel.de';
+  const email = 'projectify.pro@web.de';
   const subject = encodeURIComponent(form.subject);
   const body = encodeURIComponent(form.message);
   window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
