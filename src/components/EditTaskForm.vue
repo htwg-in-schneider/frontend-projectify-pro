@@ -16,8 +16,10 @@ const loading = ref(false);
 const commentsLoading = ref(false);
 const newComment = ref('');
 
-
+// Speicher für Validierungsfehler
 const errors = ref({});
+const showErrorMessage = ref(false);
+const commentError = ref(false); // Neu: Visueller Fehler für Kommentare
 
 // Formular-Daten
 const form = ref({
@@ -52,6 +54,7 @@ async function loadData() {
   
   loading.value = true;
   errors.value = {}; 
+  showErrorMessage.value = false;
   try {
     const token = await getAccessTokenSilently();
     const task = await getTaskById(token, props.taskId);
@@ -90,6 +93,7 @@ watch(() => props.taskId, (newId) => {
 
 async function submitComment() {
   if (!newComment.value.trim()) return;
+  commentError.value = false;
   try {
     const token = await getAccessTokenSilently();
     let currentUserName = authUser.value?.name || authUser.value?.nickname || 'Unbekannt';
@@ -101,33 +105,47 @@ async function submitComment() {
     newComment.value = '';
     await fetchComments(token);
   } catch (e) {
-    alert("Kommentar konnte nicht gesendet werden.");
+    // KEIN alert() mehr. Wir loggen den Fehler und zeigen einen Hinweis im UI.
+    console.error("Kommentar konnte nicht gesendet werden:", e);
+    commentError.value = true;
   }
 }
 
-
+// Validierungsfunktion gemäß Punkt c des Aufgabenblatts
 function validateForm() {
   errors.value = {};
+  let isValid = true;
   
   if (!form.value.title || form.value.title.trim().length < 3) {
     errors.value.title = "Der Titel muss mindestens 3 Zeichen lang sein.";
+    isValid = false;
   }
   
   if (form.value.duration === null || form.value.duration === undefined || form.value.duration === '') {
     errors.value.duration = "Bitte geben Sie eine Dauer an.";
-  } else if (parseFloat(form.value.duration) < 0) {
-    errors.value.duration = "Die Dauer kann nicht negativ sein.";
+    isValid = false;
+  } else if (parseFloat(form.value.duration) <= 0) {
+    errors.value.duration = "Die Dauer muss größer als 0 sein.";
+    isValid = false;
   }
 
   if (!form.value.status) {
     errors.value.status = "Bitte wählen Sie einen Status aus.";
+    isValid = false;
   }
 
-  return Object.keys(errors.value).length === 0;
+  if (!form.value.user) {
+    errors.value.user = "Bitte wählen Sie eine Zuweisung aus.";
+    isValid = false;
+  }
+
+  showErrorMessage.value = !isValid;
+  return isValid;
 }
 
 function save() {
   if (validateForm()) {
+    showErrorMessage.value = false;
     emit('save', { ...form.value });
   }
 }
@@ -141,9 +159,13 @@ defineExpose({ save });
   </div>
 
   <div v-else>
+    <div v-if="showErrorMessage" class="alert alert-danger mb-4 py-2 border-0 shadow-sm">
+      Bitte korrigieren Sie die markierten Felder, um zu speichern.
+    </div>
+
     <form @submit.prevent="save" novalidate>
       <div class="mb-3">
-        <label class="form-label fw-bold">Titel</label>
+        <label class="form-label fw-bold small text-uppercase text-muted">Titel *</label>
         <input 
           class="form-control" 
           :class="{'is-invalid': errors.title}" 
@@ -155,25 +177,30 @@ defineExpose({ save });
 
       <div class="row mb-3">
         <div class="col-md-6">
-          <label class="form-label fw-bold">Zugewiesen an</label>
-          <select class="form-select" v-model="form.user">
-            <option value="">Nicht zugewiesen</option>
+          <label class="form-label fw-bold small text-uppercase text-muted">Zugewiesen an *</label>
+          <select 
+            class="form-select" 
+            :class="{'is-invalid': errors.user}"
+            v-model="form.user"
+          >
+            <option value="">Bitte wählen...</option>
             <option v-for="u in staffList" :key="u.id" :value="u.name">
               {{ u.name }}
             </option>
           </select>
+          <div class="invalid-feedback">{{ errors.user }}</div>
         </div>
         
         <div class="col-md-6">
-          <label class="form-label fw-bold">Status</label>
+          <label class="form-label fw-bold small text-uppercase text-muted">Status *</label>
           <select 
             class="form-select" 
             :class="{'is-invalid': errors.status}" 
             v-model="form.status"
           >
-            <option>Erledigt</option>
-            <option>In Bearbeitung</option>
             <option>Offen</option>
+            <option>In Bearbeitung</option>
+            <option>Erledigt</option>
           </select>
           <div class="invalid-feedback">{{ errors.status }}</div>
         </div>
@@ -181,15 +208,15 @@ defineExpose({ save });
 
       <div class="row mb-3">
         <div class="col-md-4">
-          <label class="form-label fw-bold">Startdatum</label>
+          <label class="form-label fw-bold small text-uppercase text-muted">Startdatum</label>
           <input type="date" class="form-control" v-model="form.startDate" />
         </div>
         <div class="col-md-4">
-          <label class="form-label fw-bold">Enddatum</label>
+          <label class="form-label fw-bold small text-uppercase text-muted">Enddatum</label>
           <input type="date" class="form-control" v-model="form.endDate" />
         </div>
         <div class="col-md-4">
-          <label class="form-label fw-bold">Dauer in Stunden</label>
+          <label class="form-label fw-bold small text-uppercase text-muted">Dauer (Std) *</label>
           <input 
             type="number" 
             step="0.5" 
@@ -206,6 +233,11 @@ defineExpose({ save });
 
     <div>
       <h5 class="fw-bold mb-3">Kommentare</h5>
+      
+      <div v-if="commentError" class="text-danger small mb-2">
+        Fehler: Kommentar konnte nicht gesendet werden.
+      </div>
+
       <div class="comment-list mb-3" v-if="comments.length > 0">
         <div v-for="c in comments" :key="c.id" class="card mb-2 bg-light border-0">
           <div class="card-body p-2">
@@ -214,9 +246,9 @@ defineExpose({ save });
           </div>
         </div>
       </div>
-      <div v-else class="text-muted mb-3 fst-italic">Keine Kommentare vorhanden.</div>
+      <div v-else class="text-muted mb-3 fst-italic small">Keine Kommentare vorhanden.</div>
 
-      <div class="input-group">
+      <div class="input-group input-group-sm">
         <input 
           type="text" 
           class="form-control" 
@@ -224,7 +256,7 @@ defineExpose({ save });
           v-model="newComment"
           @keyup.enter="submitComment"
         />
-        <button class="btn btn-primary" type="button" @click="submitComment">Senden</button>
+        <button class="btn btn-primary px-3" type="button" @click="submitComment">Senden</button>
       </div>
     </div>
   </div>
@@ -237,6 +269,10 @@ defineExpose({ save });
   border: 1px solid #dee2e6;
   border-radius: 6px;
   padding: 10px;
-  background: white;
+  background: #fdfdfd;
+}
+
+.invalid-feedback {
+  font-size: 0.8rem;
 }
 </style>
