@@ -7,7 +7,7 @@ const bannerStore = useBannerStore();
 defineProps({
     text: {
         type: String,
-        default: 'Viele Sonderangebote heute!',
+        default: 'Erreiche jetzt mehr mit Projectify Pro!',
     }
 });
 </script>

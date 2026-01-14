@@ -11,7 +11,7 @@ const editName = ref('')
 const error = ref('')
 const successMsg = ref('')
 
-// Hilfsfunktion zum Kopieren des Tokens
+// helpfunktion to copy token
 function copyToClipboard(event) {
   event.target.select()
   navigator.clipboard.writeText(event.target.value)
@@ -42,7 +42,7 @@ async function loadProfile() {
       if (response.ok) {
         const data = await response.json()
         profileData.value = data
-        editName.value = data.name // Setzt das Eingabefeld auf den aktuellen Namen
+        editName.value = data.name 
       } else {
         error.value = `Fehler beim Laden des Profils: ${response.status} ${response.statusText}`
       }
@@ -65,7 +65,7 @@ async function handleSaveName() {
     
     await updateProfileName(token, editName.value)
     successMsg.value = 'Name erfolgreich aktualisiert!'
-    profileData.value.name = editName.value // UI aktualisieren
+    profileData.value.name = editName.value // UI update
   } catch (e) {
     error.value = 'Speichern des Namens fehlgeschlagen.'
     console.error(e)

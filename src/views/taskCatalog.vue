@@ -169,11 +169,9 @@ async function onDeleteTask() {
   <div class="dashboard-page container">
     <div class="row">
 
-      <!-- Hauptbereich -->
       <main class="col-lg-9 kanban-area-wrapper p-0">
         <div class="dashboard-wrapper p-4 p-md-5">
 
-          <!-- Header wie Dashboard -->
           <div class="d-flex justify-content-between align-items-center mb-4 dashboard-header-container">
             <h2 class="fw-bold mb-0 dashboard-title">Aufgabenübersicht</h2>
 
@@ -182,7 +180,7 @@ async function onDeleteTask() {
                 Projekt erstellen
               </Button>
 
-              <!-- NUR ADMIN -->
+              <!-- only ADMIN -->
               <Button
                 v-if="isAdmin"
                 variant="primary"
@@ -198,7 +196,7 @@ async function onDeleteTask() {
             </div>
           </div>
 
-          <!-- FILTER-KOMPONENTE -->
+          <!-- filter -->
           <TaskFilter @filter-change="onFilterChange" />
 
           <!-- Fehler -->
@@ -206,12 +204,12 @@ async function onDeleteTask() {
             {{ loadingError }}
           </div>
 
-          <!-- Keine Tasks -->
+          <!-- no tasks -->
           <div v-else-if="tasks.length === 0" class="alert alert-info">
             Keine Aufgaben gefunden.
           </div>
 
-          <!-- Aufgabenliste -->
+          <!-- tasklist -->
           <div class="kanban-area">
             <div class="row g-4">
               <div
@@ -230,7 +228,6 @@ async function onDeleteTask() {
         </div>
       </main>
 
-      <!-- Unsichtbare Sidebar -->
       <aside class="col-lg-3 sidebar p-4 invisible-sidebar"></aside>
 
     </div>

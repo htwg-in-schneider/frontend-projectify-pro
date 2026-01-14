@@ -130,7 +130,7 @@ async function submitCreateTask() {
 }
 
 async function onSaveTask(body) {
-  // ÄNDERUNG: Status-Änderung für alle erlauben
+
   try {
     const token = await getAccessTokenSilently();
     await updateTask(token, selectedTaskId.value, body);

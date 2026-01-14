@@ -1,9 +1,12 @@
 <script setup>
 import Navbar from '@/components/navbar.vue'
 import Footer from '@/components/footer.vue'
+import SpecialBanner from '@/components/specialBanner.vue'
 </script>
 
 <template>
+  <SpecialBanner /> 
+
   <Navbar />
 
   <main>
@@ -15,4 +18,3 @@ import Footer from '@/components/footer.vue'
 
 <style scoped>
 </style>
-
