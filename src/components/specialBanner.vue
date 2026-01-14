@@ -1,8 +1,9 @@
 <script setup>
 import { useBannerStore } from '@/stores/banner';
-import Button from '@/components/button.vue';
+import { useRouter } from 'vue-router'; // Import des Routers
 
 const bannerStore = useBannerStore();
+const router = useRouter();
 
 defineProps({
     text: {
@@ -10,11 +11,22 @@ defineProps({
         default: 'Erreiche jetzt mehr mit Projectify Pro!',
     }
 });
+
+function handleBannerClick() {
+
+    bannerStore.hideBanner();
+    
+    router.push('/dashboard');
+}
 </script>
 
 <template>
     <div id="specialbanner" class="text-center py-3" v-if="bannerStore.isVisible">
-        {{ text }}&nbsp;&nbsp;
-        <Button variant="dark" @click="bannerStore.hideBanner">OK!</Button>
+        <span 
+            @click="handleBannerClick" 
+            style="cursor: pointer; text-decoration: underline;" 
+            title="Jetzt registrieren und Vorteile sichern">
+            {{ text }}
+        </span>
     </div>
 </template>
