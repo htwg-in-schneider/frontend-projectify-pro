@@ -175,41 +175,36 @@ async function onDeleteTask() {
           <div class="d-flex justify-content-between align-items-center mb-4 dashboard-header-container">
             <h2 class="fw-bold mb-0 dashboard-title">Aufgabenübersicht</h2>
 
-            <div class="d-flex flex-wrap align-items-center">
-              <Button variant="primary" class="me-2 mb-2 mb-sm-0 btn-custom-blue">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+              <Button variant="primary" class="btn-custom-blue">
                 Projekt erstellen
               </Button>
 
-              <!-- only ADMIN -->
               <Button
                 v-if="isAdmin"
                 variant="primary"
-                class="me-2 mb-2 mb-sm-0 btn-custom-blue"
+                class="btn-custom-blue"
                 @click="openCreateTask"
               >
                 Neue Aufgabe
               </Button>
 
-              <Button variant="success" class="mb-2 mb-sm-0 btn-custom-green">
+              <Button variant="success" class="btn-custom-green">
                 Rechnung erstellen
               </Button>
             </div>
           </div>
 
-          <!-- filter -->
           <TaskFilter @filter-change="onFilterChange" />
 
-          <!-- Fehler -->
           <div v-if="loadingError" class="alert alert-danger">
             {{ loadingError }}
           </div>
 
-          <!-- no tasks -->
           <div v-else-if="tasks.length === 0" class="alert alert-info">
             Keine Aufgaben gefunden.
           </div>
 
-          <!-- tasklist -->
           <div class="kanban-area">
             <div class="row g-4">
               <div
@@ -233,7 +228,6 @@ async function onDeleteTask() {
     </div>
   </div>
 
-  <!-- CREATE MODAL (ADMIN ONLY) -->
   <TaskModal
     :show="showCreate"
     title="Neue Aufgabe"
@@ -247,7 +241,6 @@ async function onDeleteTask() {
     </template>
   </TaskModal>
 
-  <!-- EDIT MODAL (ADMIN ONLY) -->
   <TaskModal
     :show="showEdit"
     title="Aufgabe bearbeiten"
