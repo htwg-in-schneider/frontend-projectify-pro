@@ -172,10 +172,11 @@ async function onDeleteTask() {
       <main class="col-lg-12 kanban-area-wrapper p-0">
         <div class="dashboard-wrapper p-4 p-md-5">
 
-          <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 dashboard-header-container">
-            <h2 class="fw-bold mb-0 dashboard-title me-3">Aufgabenübersicht</h2>
+          <div class="d-flex flex-wrap align-items-center mb-4 dashboard-header-container">
+            <h2 class="fw-bold mb-0 dashboard-title me-4">Aufgabenübersicht</h2>
 
-            <div class="d-flex flex-nowrap align-items-center gap-2">
+            <div class="d-flex flex-grow-1 align-items-center gap-2 mt-3 mt-sm-0">
+              
               <Button variant="primary" class="btn-custom-blue text-nowrap">
                 Projekt erstellen
               </Button>
@@ -189,7 +190,7 @@ async function onDeleteTask() {
                 Neue Aufgabe
               </Button>
 
-              <Button variant="success" class="btn-custom-green text-nowrap">
+              <Button variant="success" class="btn-custom-green text-nowrap ms-auto">
                 Rechnung erstellen
               </Button>
             </div>
@@ -254,7 +255,7 @@ async function onDeleteTask() {
 
     <template #footer>
       <button class="btn btn-danger" @click="onDeleteTask()">Löschen</button>
-      <button class="btn btn-success" @click="$refs.editForm.save()">Speichern</button>
+      <button class="btn btn-success" @click="editForm.save()">Speichern</button>
     </template>
   </TaskModal>
 </template>

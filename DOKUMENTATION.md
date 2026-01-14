@@ -163,7 +163,7 @@ Die Rechnung wird als Übersicht dargestellt und dient als Grundlage für die Ab
   Anstelle von rein generischen Container-Elementen (`div`) werden semantische HTML5-Elemente wie `<header>`, `<main>` und `<footer>` eingesetzt. Dadurch wird die Struktur der Anwendung für Suchmaschinen klarer und besser interpretierbar.
 
 - **Responsive Meta-Tags:**  
-  Durch korrekt gesetzte Viewport-Meta-Tags ist die Anwendung für mobile Endgeräte optimiert. Dies stellt einen wichtigen Faktor für modernes SEO dar, da Suchmaschinen mobile Optimierung berücksichtigen.
+Durch korrekt gesetzte Viewport-Meta-Tags passt sich die Anwendung an unterschiedliche Bildschirmgrößen an. Der Schwerpunkt der Benutzeroberfläche liegt dabei auf der Desktop-Darstellung, da die Anwendung primär für die Nutzung am Computer konzipiert ist. Dies stellt eine übersichtliche und strukturierte Darstellung komplexerer Inhalte sicher.
 
 - **Sprechende Seitentitel:**  
   Die einzelnen Ansichten (z. B. Aufgabenübersicht oder Benutzerverwaltung) besitzen aussagekräftige Seitentitel, die den jeweiligen Inhalt der Seite eindeutig widerspiegeln.
