@@ -1,5 +1,4 @@
 <script setup>
-
 const props = defineProps({
   task: Object
 })
@@ -27,6 +26,11 @@ const emit = defineEmits(['edit'])
       <p v-if="task.description" class="card-text mt-2 text-muted small mb-2">
         {{ task.description }}
       </p>
+      
+      <div v-if="task.startDate || task.endDate" class="mt-2 text-muted small">
+        <i class="bi bi-calendar-event me-1"></i>
+        {{ task.startDate || '...' }} bis {{ task.endDate || '...' }}
+      </div>
       
       <div class="d-flex justify-content-between align-items-center mt-2">
         <span class="small text-muted" style="font-size: 0.75rem;">

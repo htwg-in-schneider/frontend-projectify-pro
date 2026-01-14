@@ -7,7 +7,7 @@ import { getAllUsers } from '@/api/userService.js';
 const props = defineProps({
   taskId: [Number, String],
   backend: Boolean,
-  isAdmin: Boolean // Steuert Schreibrechte für Stammdaten
+  isAdmin: Boolean // Wichtig für Berechtigungen
 });
 
 const emit = defineEmits(['save', 'delete']);
@@ -16,13 +16,10 @@ const { getAccessTokenSilently, user: authUser } = useAuth0();
 const loading = ref(false);
 const commentsLoading = ref(false);
 const newComment = ref('');
-
-// Speicher für Validierungsfehler
 const errors = ref({});
 const showErrorMessage = ref(false);
 const commentError = ref(false);
 
-// Formular-Daten
 const form = ref({
   title: '',
   user: '',
@@ -36,9 +33,15 @@ const form = ref({
 const comments = ref([]);
 const staffList = ref([]);
 
+// Verbesserte Datums-Formatierung (vermeidet Zeitzonen-Verschiebungen)
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  return new Date(dateStr).toISOString().split('T')[0];
+  if (typeof dateStr === 'string') return dateStr.split('T')[0];
+  try {
+    return new Date(dateStr).toISOString().split('T')[0];
+  } catch (e) {
+    return '';
+  }
 }
 
 onMounted(async () => {
@@ -125,16 +128,6 @@ function validateForm() {
     isValid = false;
   } else if (parseFloat(form.value.duration) <= 0) {
     errors.value.duration = "Die Dauer muss größer als 0 sein.";
-    isValid = false;
-  }
-
-  if (!form.value.status) {
-    errors.value.status = "Bitte wählen Sie einen Status aus.";
-    isValid = false;
-  }
-
-  if (!form.value.user) {
-    errors.value.user = "Bitte wählen Sie eine Zuweisung aus.";
     isValid = false;
   }
 
