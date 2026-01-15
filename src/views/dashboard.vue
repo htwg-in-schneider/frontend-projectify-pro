@@ -383,7 +383,7 @@ async function deleteTaskById() {
             </div>
 
             <div v-if="!selectedProject && projects.length > 0" class="row g-4 kanban-container">
-               <div class="col-md-4" v-for="status in ['Erledigt', 'In Bearbeitung', 'Offen']" :key="status">
+               <div class="col-md-4" v-for="status in ['Offen', 'In Bearbeitung', 'Erledigt']" :key="status">
                 <h4 class="mb-3 kanban-header">{{ status }}</h4>
                 <div class="kanban-column">
                   <div v-for="proj in filteredProjects?.[status]" :key="proj.id" class="card mb-3 project-card border-0 shadow-sm position-relative" @click="selectProject(proj)">
@@ -403,7 +403,7 @@ async function deleteTaskById() {
             </div>
 
             <div v-else-if="selectedProject" class="row g-4 kanban-container">
-              <div class="col-md-4" v-for="status in ['Erledigt', 'In Bearbeitung', 'Offen']" :key="status">
+              <div class="col-md-4" v-for="status in ['Offen', 'In Bearbeitung', 'Erledigt']" :key="status">
                 <h4 class="mb-3 kanban-header">{{ status }}</h4>
                 <div class="kanban-column">
                   <TaskCard v-for="task in filteredTasks?.[status]" :key="task.id" :task="task" @click="openEditTask(task.id)" />
