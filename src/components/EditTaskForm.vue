@@ -123,17 +123,22 @@ function validateForm() {
   errors.value = {};
   let isValid = true;
   
-  if (!form.value.title || form.value.title.trim().length < 3) {
-    errors.value.title = "Der Titel muss mindestens 3 Zeichen lang sein.";
-    isValid = false;
-  }
-  
-  if (form.value.duration === null || form.value.duration === undefined || form.value.duration === '') {
-    errors.value.duration = "Bitte geben Sie eine Dauer an.";
-    isValid = false;
-  } else if (parseFloat(form.value.duration) <= 0) {
-    errors.value.duration = "Die Dauer muss größer als 0 sein.";
-    isValid = false;
+  // WICHTIG: Validierung nur durchführen, wenn der User auch Admin ist.
+  // Wenn er kein Admin ist, sind die Felder disabled und er kann fehlerhafte Daten nicht korrigieren.
+  // Er soll aber trotzdem den Status ändern dürfen.
+  if (props.isAdmin) {
+    if (!form.value.title || form.value.title.trim().length < 3) {
+      errors.value.title = "Der Titel muss mindestens 3 Zeichen lang sein.";
+      isValid = false;
+    }
+    
+    if (form.value.duration === null || form.value.duration === undefined || form.value.duration === '') {
+      errors.value.duration = "Bitte geben Sie eine Dauer an.";
+      isValid = false;
+    } else if (parseFloat(form.value.duration) <= 0) {
+      errors.value.duration = "Die Dauer muss größer als 0 sein.";
+      isValid = false;
+    }
   }
 
   showErrorMessage.value = !isValid;
@@ -143,7 +148,7 @@ function validateForm() {
 function save() {
   if (validateForm()) {
     showErrorMessage.value = false;
-    // clean form
+    // Daten senden
     emit('save', { ...form.value });
   }
 }
@@ -249,16 +254,18 @@ defineExpose({ save });
       </div>
       <div v-else class="text-muted mb-3 fst-italic small">Keine Kommentare vorhanden.</div>
 
-      <div class="input-group input-group-sm">
-        <input 
-          type="text" 
-          class="form-control" 
+      <div class="mb-3">
+        <textarea 
+          class="form-control mb-2" 
+          rows="3" 
           placeholder="Kommentar schreiben..." 
           v-model="newComment"
-          @keyup.enter="submitComment"
-        />
-        <button class="btn btn-primary px-3" type="button" @click="submitComment">Senden</button>
+        ></textarea>
+        <div class="d-flex justify-content-end">
+           <button class="btn btn-primary px-4" type="button" @click="submitComment">Senden</button>
+        </div>
       </div>
+
     </div>
   </div>
 </template>
