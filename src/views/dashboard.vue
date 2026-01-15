@@ -88,7 +88,7 @@ async function loadProjects() {
 
 async function selectProject(project) {
   selectedProject.value = project;
-  searchQuery.value = ''; // Suche beim Projektwechsel zurücksetzen
+  searchQuery.value = ''; 
   if (project.id) {
     await loadTasksForProject(project.id);
   }
@@ -122,7 +122,7 @@ async function checkAdminRole() {
   } catch(e) { isAdmin.value = false; }
 }
 
-// --- COMPUTED (GEFILTERT DURCH SUCHE) ---
+// --- COMPUTED searching ---
 
 
 const filteredProjects = computed(() => {
@@ -203,7 +203,7 @@ function getProjectName(id) {
 }
 
 async function calculateInvoice() {
-  if (!isAdmin.value) return; // Nur Admin darf Rechnung erstellen
+  if (!isAdmin.value) return; 
   let tasksToProcess = [];
   if (!selectedProject.value) {
     try {
@@ -288,7 +288,7 @@ function openEditTask(id) {
 }
 
 async function saveTask(body) {
-  // ÄNDERUNG: if (!isAdmin.value) return; ENTFERNT, damit Status gespeichert werden kann
+  // deleted isAdmin value
   try {
     const token = await getAccessTokenSilently();
     const payload = { 
@@ -318,7 +318,7 @@ async function deleteTaskById() {
 </script>
 
 <template>
-  <div class="dashboard-page container">
+  <div class="dashboard-page container-fluid">
     <div class="row">
 
       <main class="col-lg-9 kanban-area-wrapper p-0">
@@ -326,32 +326,42 @@ async function deleteTaskById() {
           <div class="kanban-area">
 
             <div class="d-flex flex-column mb-4 dashboard-header-container">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                  <button v-if="selectedProject" class="btn btn-sm btn-outline-secondary mb-2" @click="closeProject">
-                    &larr; Zurück zur Übersicht
-                  </button>
-                  <h2 v-if="!selectedProject" class="fw-bold mb-0 dashboard-title">Projekt Übersicht</h2>
-                  <h2 v-else class="fw-bold mb-0 dashboard-title">Aufgaben Übersicht</h2>
-                </div>
+              
+              <div v-if="selectedProject">
+                 <div class="d-flex justify-content-between align-items-center mb-2">
+                    <button class="btn btn-sm btn-outline-secondary" @click="closeProject">
+                      &larr; Zurück zur Übersicht
+                    </button>
 
-                <div class="d-flex flex-wrap align-items-center">
-                  <Button v-if="!selectedProject && isAdmin" variant="primary" class="me-2 btn-custom-blue" @click="openCreateProject">
-                    Neues Projekt
-                  </Button>
-                  <Button v-if="selectedProject && isAdmin" variant="secondary" class="me-2" @click="openEditProject(selectedProject)">
-                    Projekt bearbeiten
-                  </Button>
-                  <Button v-if="selectedProject && isAdmin" variant="primary" class="me-2 btn-custom-blue" @click="openCreateTask">
-                    Aufgabe erstellen
-                  </Button>
-                  <Button v-if="isAdmin" variant="success" class="btn-custom-green" @click="calculateInvoice">
-                    Rechnung erstellen
-                  </Button>
-                </div>
+                    <div class="d-flex flex-wrap align-items-center">
+                      <Button v-if="isAdmin" variant="secondary" class="me-2" @click="openEditProject(selectedProject)">
+                        Projekt bearbeiten
+                      </Button>
+                      <Button v-if="isAdmin" variant="primary" class="me-2 btn-custom-blue" @click="openCreateTask">
+                        Aufgabe erstellen
+                      </Button>
+                      <Button v-if="isAdmin" variant="success" class="btn-custom-green" @click="calculateInvoice">
+                        Rechnung erstellen
+                      </Button>
+                    </div>
+                 </div>
+                 <h2 class="fw-bold mb-0 dashboard-title">Aufgaben Übersicht</h2>
               </div>
 
-              <div class="search-container">
+              <div v-else class="d-flex justify-content-between align-items-center mb-3">
+                 <h2 class="fw-bold mb-0 dashboard-title">Projekt Übersicht</h2>
+
+                 <div class="d-flex flex-wrap align-items-center">
+                    <Button v-if="isAdmin" variant="primary" class="me-2 btn-custom-blue" @click="openCreateProject">
+                      Neues Projekt
+                    </Button>
+                    <Button v-if="isAdmin" variant="success" class="btn-custom-green" @click="calculateInvoice">
+                      Rechnung erstellen
+                    </Button>
+                 </div>
+              </div>
+
+              <div class="search-container mt-3">
                 <div class="input-group shadow-sm">
                   <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
                   <input 
@@ -516,7 +526,7 @@ async function deleteTaskById() {
 </template>
 
 <style scoped>
-.dashboard-page.container { padding-top: 2rem; padding-bottom: 2rem; }
+.dashboard-page.container-fluid { padding-top: 2rem; padding-bottom: 2rem; }
 .dashboard-wrapper {
   font-family: 'Montserrat', sans-serif;
   background: rgba(255, 255, 255, 0.53);

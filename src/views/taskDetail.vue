@@ -157,7 +157,7 @@ async function onDeleteTask() {
 </script>
 
 <template>
-  <div class="dashboard-page container">
+  <div class="dashboard-page container-fluid">
     <div class="row">
 
       <main class="col-lg-9 kanban-area-wrapper p-0">
@@ -255,7 +255,7 @@ async function onDeleteTask() {
 </template>
 
 <style scoped>
-.dashboard-page.container {
+.dashboard-page.container-fluid {
   padding-top: 2rem;
   padding-bottom: 2rem;
 }
