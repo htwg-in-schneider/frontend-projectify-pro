@@ -28,9 +28,9 @@ const scrollToTop = () => {
               Kostenlos starten
             </Button>
             
-            <router-link to="/kontakt" class="text-decoration-underline text-dark me-2">
+            <a href="mailto:projectify.pro@web.de" class="text-decoration-underline text-dark me-2">
               Erfahre mehr
-            </router-link>
+            </a>
           </div>
 
           <div class="col-lg-6">
