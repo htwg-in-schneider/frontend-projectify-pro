@@ -10,6 +10,7 @@ const props = defineProps({
   isAdmin: Boolean 
 });
 
+// Expose 'save' damit das Modal darauf zugreifen kann
 const emit = defineEmits(['save', 'delete']);
 const { getAccessTokenSilently, user: authUser } = useAuth0();
 
@@ -33,14 +34,12 @@ const form = ref({
 const comments = ref([]);
 const staffList = ref([]);
 
-// clean date
 function formatDate(dateStr) {
   if (!dateStr) return '';
   if (typeof dateStr === 'string' && dateStr.includes('T')) {
       return dateStr.split('T')[0];
   }
   if (typeof dateStr === 'string') return dateStr; 
-  
   try {
     return new Date(dateStr).toISOString().split('T')[0];
   } catch (e) {
@@ -59,14 +58,12 @@ onMounted(async () => {
 
 async function loadData() {
   if (!props.taskId) return;
-  
   loading.value = true;
   errors.value = {}; 
   showErrorMessage.value = false;
   try {
     const token = await getAccessTokenSilently();
     const task = await getTaskById(token, props.taskId);
-    
     form.value = {
       title: task.title || '',
       user: task.user || '',
@@ -123,9 +120,14 @@ function validateForm() {
   errors.value = {};
   let isValid = true;
   
-  // WICHTIG: Validierung nur durchführen, wenn der User auch Admin ist.
-  // Wenn er kein Admin ist, sind die Felder disabled und er kann fehlerhafte Daten nicht korrigieren.
-  // Er soll aber trotzdem den Status ändern dürfen.
+  // 1. Validierung für ALLE (Status muss immer da sein)
+  if (!form.value.status) {
+    errors.value.status = "Status ist erforderlich.";
+    isValid = false;
+  }
+
+  // 2. Strenge Validierung nur für Admins
+  // Wenn kein Admin, ignorieren wir Title/Duration Fehler, da diese Felder read-only sind
   if (props.isAdmin) {
     if (!form.value.title || form.value.title.trim().length < 3) {
       errors.value.title = "Der Titel muss mindestens 3 Zeichen lang sein.";
@@ -148,11 +150,11 @@ function validateForm() {
 function save() {
   if (validateForm()) {
     showErrorMessage.value = false;
-    // Daten senden
     emit('save', { ...form.value });
   }
 }
 
+// Wichtig: 'save' muss exposed werden, damit TaskModal es aufrufen kann
 defineExpose({ save });
 </script>
 
